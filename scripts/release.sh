@@ -3,7 +3,7 @@ set -euo pipefail
 
 remote="${REMOTE:-origin}"
 branch="${BRANCH:-main}"
-plist="com.stoutput.cmdtabultra.plist"
+plist="com.jint233.cmdtabultra.plist"
 
 require_command() {
   if ! command -v "$1" >/dev/null 2>&1; then

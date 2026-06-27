@@ -3,7 +3,7 @@ import Cocoa
 extension ControlPanelDelegate {
     func refresh() {
         setControlsEnabled(false)
-        setMessage("正在刷新…")
+        setMessage(localized("message.refreshing"))
         DispatchQueue.global(qos: .userInitiated).async {
             let status = currentServiceStatus()
             DispatchQueue.main.async {
@@ -37,24 +37,29 @@ extension ControlPanelDelegate {
         }
 
         startButton.title =
-            status.accessibilityGranted ? "启动" : (startButton.title == "重启软件" ? "重启软件" : "去授权")
+            status.accessibilityGranted
+            ? localized("control.start")
+            : (startButton.title == localized("control.restart")
+                ? localized("control.restart") : localized("control.authorize"))
 
         if !status.accessibilityGranted {
             statusDot.stringValue = "●"
             statusDot.textColor = .systemOrange
-            statusValue.stringValue = status.running ? "等待授权" : "未授权"
+            statusValue.stringValue =
+                status.running
+                ? localized("state.waitingAuthorization") : localized("state.unauthorized")
             statusValue.textColor = .systemOrange
 
-            if startButton.title == "重启软件" {
+            if startButton.title == localized("control.restart") {
                 if !isMessageProtected {
-                    messageValue.stringValue = "请在辅助功能设置中允许该应用。授权完成后会提示重启软件。"
+                    messageValue.stringValue = localized("message.allowAccessibilityThenRestart")
                 }
             } else if status.running {
                 if !isMessageProtected {
-                    messageValue.stringValue = "服务进程已启动，但辅助功能未授权，当前功能不会生效。请点击「去授权」进行设置。"
+                    messageValue.stringValue = localized("message.serviceRunningUnauthorized")
                 }
             } else if !isMessageProtected {
-                messageValue.stringValue = "使用此工具需要辅助功能权限，请点击「去授权」进行设置。"
+                messageValue.stringValue = localized("message.accessibilityRequired")
             }
 
             startButton.isEnabled = true
@@ -62,12 +67,12 @@ extension ControlPanelDelegate {
         } else if status.running && status.agentReady {
             statusDot.stringValue = "●"
             statusDot.textColor = .systemGreen
-            statusValue.stringValue = hasJustStarted ? "启动完成" : "服务运行中"
+            statusValue.stringValue =
+                hasJustStarted ? localized("state.started") : localized("state.running")
             statusValue.textColor = .systemGreen
             if !isMessageProtected
-                && (messageValue.stringValue.hasPrefix("请在系统设置")
-                    || messageValue.stringValue.hasPrefix("正在打开")
-                    || messageValue.stringValue == "启动完成")
+                && (messageValue.stringValue == localized("state.started")
+                    || messageValue.stringValue == localized("message.openedAccessibility"))
             {
                 messageValue.stringValue = ""
             }
@@ -77,12 +82,13 @@ extension ControlPanelDelegate {
         } else if status.running {
             statusDot.stringValue = "●"
             statusDot.textColor = .systemYellow
-            statusValue.stringValue = "服务就绪中"
+            statusValue.stringValue = localized("state.readying")
             statusValue.textColor = .systemYellow
             if !isMessageProtected
-                && (messageValue.stringValue.isEmpty || messageValue.stringValue == "启动完成")
+                && (messageValue.stringValue.isEmpty
+                    || messageValue.stringValue == localized("state.started"))
             {
-                messageValue.stringValue = "服务进程已启动，但监听模块尚未就绪；请确认辅助功能授权已允许 CmdTabUltra。"
+                messageValue.stringValue = localized("message.agentNotReady")
             }
 
             startButton.isEnabled = false
@@ -90,11 +96,10 @@ extension ControlPanelDelegate {
         } else {
             statusDot.stringValue = "●"
             statusDot.textColor = .systemRed
-            statusValue.stringValue = "已停止"
+            statusValue.stringValue = localized("state.stopped")
             statusValue.textColor = .systemRed
             if !isMessageProtected
-                && (messageValue.stringValue.hasPrefix("请在系统设置")
-                    || messageValue.stringValue.hasPrefix("正在打开"))
+                && messageValue.stringValue == localized("message.openedAccessibility")
             {
                 messageValue.stringValue = ""
             }
@@ -107,7 +112,7 @@ extension ControlPanelDelegate {
         pidValue.stringValue = status.pid.map(String.init) ?? "—"
         duplicateValue.stringValue =
             status.duplicatePids.isEmpty
-            ? "无"
+            ? localized("status.none")
             : status.duplicatePids.map(String.init).joined(separator: ", ")
         autoStartSwitch.isEnabled = true
         autoStartSwitch.state = status.autoStartEnabled ? .on : .off

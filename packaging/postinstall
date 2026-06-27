@@ -2,8 +2,7 @@
 set -euo pipefail
 
 APP="CmdTabUltra"
-PLIST_LABEL="com.stoutput.cmdtabultra"
-OLD_LABEL="com.stoutput.cmdtabmax"
+PLIST_LABEL="com.jint233.cmdtabultra"
 RESET_ACCESSIBILITY="${RESET_ACCESSIBILITY:-1}"
 
 console_user=$(/usr/bin/stat -f %Su /dev/console)
@@ -28,16 +27,11 @@ payload_app="/Library/Application Support/$APP/$APP.app"
 app_bundle="$user_home/Applications/$APP.app"
 binary="$app_bundle/Contents/MacOS/$APP"
 plist_file="$user_home/Library/LaunchAgents/$PLIST_LABEL.plist"
-old_plist="$user_home/Library/LaunchAgents/$OLD_LABEL.plist"
-old_bundle="$user_home/Applications/CmdTabMax.app"
 ready_file="$user_home/Library/Application Support/$APP/agent-ready"
 
 version=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$payload_app/Contents/Info.plist" 2>/dev/null || echo "1.0.0")
 
 /bin/launchctl bootout "$launchd_uid" "$plist_file" 2>/dev/null || true
-/bin/launchctl bootout "$launchd_uid" "$old_plist" 2>/dev/null || true
-/bin/launchctl disable "$launchd_uid/$OLD_LABEL" 2>/dev/null || true
-run_as_console_user /usr/bin/tccutil reset Accessibility "$OLD_LABEL" 2>/dev/null || true
 if [[ "$RESET_ACCESSIBILITY" != "0" ]]; then
   run_as_console_user /usr/bin/tccutil reset Accessibility "$PLIST_LABEL" 2>/dev/null || true
 fi
@@ -78,9 +72,6 @@ EOF
 
 /usr/sbin/chown "$console_user":staff "$plist_file"
 /bin/chmod 644 "$plist_file"
-
-/bin/rm -rf "$old_bundle" "$old_plist"
-/bin/rm -f /usr/local/bin/CmdTabMax 2>/dev/null || true
 
 /bin/launchctl enable "$launchd_uid/$PLIST_LABEL" 2>/dev/null || true
 

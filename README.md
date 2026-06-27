@@ -92,6 +92,7 @@ src/
   ServiceControl.swift
 
 resources/     App icon and bundled assets
+  *.lproj/      Localized UI strings
 scripts/       Local helper scripts
 packaging/     Installer metadata and postinstall script
 docs/          Project conventions and development notes
@@ -122,11 +123,11 @@ The DMG contains:
 - `CmdTabUltra.app`
 - an `Applications` shortcut for drag-and-drop installation
 
-The app writes `com.stoutput.cmdtabultra.plist` to `~/Library/LaunchAgents/` when the service is started from the control panel.
+The app writes `com.jint233.cmdtabultra.plist` to `~/Library/LaunchAgents/` when the service is started from the control panel.
 
 If you replace the app without a stable signing identity, macOS may require Accessibility permission again. To preserve permission across upgrades, keep these stable:
 
-- bundle identifier: `com.stoutput.cmdtabultra`
+- bundle identifier: `com.jint233.cmdtabultra`
 - app location selected by the user
 - code-signing identity
 
@@ -147,8 +148,8 @@ tail -f /tmp/CmdTabUltra.log
 Inspect LaunchAgent status:
 
 ```sh
-launchctl print "gui/$(id -u)/com.stoutput.cmdtabultra"
-launchctl print-disabled "gui/$(id -u)" | grep com.stoutput.cmdtabultra
+launchctl print "gui/$(id -u)/com.jint233.cmdtabultra"
+launchctl print-disabled "gui/$(id -u)" | grep com.jint233.cmdtabultra
 ```
 
 Inspect the ready marker:
@@ -161,7 +162,7 @@ The PID in `agent-ready` should match the PID reported by `launchctl print`.
 
 ## Release Process
 
-1. Update the `Version` key in `com.stoutput.cmdtabultra.plist`.
+1. Update the `Version` key in `com.jint233.cmdtabultra.plist`.
 2. Verify `make lint` and `make universal`.
 3. Commit and push the version bump to `main`.
 4. Run `scripts/release.sh` to push the release tag.

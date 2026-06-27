@@ -54,7 +54,7 @@ Include any skipped verification in the pull request description.
 
 ## Releases
 
-Release versions come from the `Version` key in `com.stoutput.cmdtabultra.plist`.
+Release versions come from the `Version` key in `com.jint233.cmdtabultra.plist`.
 
 To publish from a clean `main` branch:
 

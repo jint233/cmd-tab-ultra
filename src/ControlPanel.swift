@@ -8,9 +8,9 @@ final class ControlPanelDelegate: NSObject, NSApplicationDelegate {
     let pidValue = NSTextField(labelWithString: "")
     let duplicateValue = NSTextField(labelWithString: "")
     let autoStartSwitch = NSSwitch()
-    let startButton = NSButton(title: "启动", target: nil, action: nil)
-    let stopButton = NSButton(title: "停止", target: nil, action: nil)
-    let refreshButton = NSButton(title: "刷新", target: nil, action: nil)
+    let startButton = NSButton(title: "", target: nil, action: nil)
+    let stopButton = NSButton(title: "", target: nil, action: nil)
+    let refreshButton = NSButton(title: "", target: nil, action: nil)
     let messageValue = NSTextField(labelWithString: "")
     var refreshTimer: Timer?
     var isStarting = false
@@ -23,6 +23,10 @@ final class ControlPanelDelegate: NSObject, NSApplicationDelegate {
     // MARK: NSApplicationDelegate
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        startButton.title = localized("control.start")
+        stopButton.title = localized("control.stop")
+        refreshButton.title = localized("control.refresh")
+
         NSApp.setActivationPolicy(.regular)
         buildWindow()
         refresh()

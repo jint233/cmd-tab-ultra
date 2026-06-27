@@ -1,5 +1,14 @@
 import Foundation
 
+func removeDuplicateUserInstallIfNeeded() {
+    let currentBundleURL = Bundle.main.bundleURL.standardizedFileURL
+    let userApplicationsURL = URL(fileURLWithPath: userApplicationsInstallPath).standardizedFileURL
+    guard currentBundleURL.path != userApplicationsURL.path else { return }
+    guard FileManager.default.fileExists(atPath: userApplicationsURL.path) else { return }
+
+    try? FileManager.default.removeItem(at: userApplicationsURL)
+}
+
 func writeLaunchAgentPlist(binaryPath: String = installedBinaryPath) throws {
     let plist: [String: Any] = [
         "Label": serviceLabel,
@@ -43,6 +52,7 @@ func startService() -> String {
     if status.loaded {
         _ = runCommand("/bin/launchctl", ["bootout", serviceDomain, launchAgentPath])
     }
+    removeDuplicateUserInstallIfNeeded()
     do {
         try writeLaunchAgentPlist()
     } catch {

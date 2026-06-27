@@ -46,19 +46,23 @@ clean:
 	rm -rf $(DIST)
 
 # Packaging and installation variables
-PLIST_LABEL   := com.stoutput.cmdtabultra
+PLIST_LABEL   := com.jint233.cmdtabultra
 PLIST_SRC     := $(PLIST_LABEL).plist
 PLIST_DST     := $(HOME)/Library/LaunchAgents/$(PLIST_SRC)
 LAUNCHD_UID   := gui/$$(id -u)
 VERSION       := $(shell /usr/libexec/PlistBuddy -c "Print :Version" $(PLIST_SRC))
 ICON_SRC      := resources/$(APP).icns
-PKG_ID        := com.stoutput.cmdtabultra.pkg
+PKG_ID        := com.jint233.cmdtabultra.pkg
 PKG_ROOT      := $(DIST)/pkgroot
 PKG_SCRIPTS   := $(DIST)/pkg-scripts
 PKG_UNSIGNED  := $(DIST)/$(APP)-$(VERSION)-unsigned.pkg
 PKG_OUT       := $(DIST)/$(APP)-$(VERSION).pkg
 DMG_ROOT      := $(DIST)/dmgroot
+DMG_RW        := $(DIST)/$(APP)-$(VERSION)-rw.dmg
 DMG_OUT       := $(DIST)/$(APP)-$(VERSION).dmg
+DMG_BACKGROUND:= $(DIST)/dmg-background.png
+DMG_VOLUME    := $(APP) Installer
+DMG_MOUNT     := /Volumes/$(DMG_VOLUME)
 
 # Local target directories for bundle build
 DIST_APP      := $(DIST)/$(APP).app
@@ -72,11 +76,6 @@ DIST_ICON     := $(DIST_RESOURCES)/$(APP).icns
 # System application path
 APP_BUNDLE    := $(HOME)/Applications/$(APP).app
 INSTALL_BIN   := $(APP_BUNDLE)/Contents/MacOS/$(APP)
-
-# Legacy cleanup
-OLD_LABEL     := com.stoutput.cmdtabmax
-OLD_PLIST     := $(HOME)/Library/LaunchAgents/$(OLD_LABEL).plist
-OLD_BUNDLE    := $(HOME)/Applications/CmdTabMax.app
 
 icon:
 	swift scripts/make_command_arrow_icon.swift
@@ -97,6 +96,11 @@ bundle: universal icon
 	cp "$(DIST)/$(APP)" "$(DIST_BIN)"
 	chmod 755 "$(DIST_BIN)"
 	cp "$(ICON_SRC)" "$(DIST_ICON)"
+	for localization in resources/*.lproj; do \
+		if [ -d "$$localization" ]; then \
+			cp -R "$$localization" "$(DIST_RESOURCES)/"; \
+		fi; \
+	done
 	rm -f "$(DIST_INFO)"
 	plutil -create xml1 "$(DIST_INFO)"
 	/usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string $(PLIST_LABEL)" "$(DIST_INFO)"
@@ -118,16 +122,47 @@ zip: bundle
 	@echo "Created distributable ZIP: $(DIST)/$(APP)-universal.zip"
 
 dmg: bundle
-	rm -rf "$(DMG_ROOT)" "$(DMG_OUT)"
-	mkdir -p "$(DMG_ROOT)"
+	swift scripts/make_dmg_background.swift
+	rm -rf "$(DMG_ROOT)" "$(DMG_MOUNT)" "$(DMG_RW)" "$(DMG_OUT)"
+	mkdir -p "$(DMG_ROOT)/.background"
 	cp -R "$(DIST_APP)" "$(DMG_ROOT)/$(APP).app"
+	cp "$(DMG_BACKGROUND)" "$(DMG_ROOT)/.background/background.png"
 	ln -s /Applications "$(DMG_ROOT)/Applications"
 	hdiutil create \
-		-volname "$(APP)" \
+		-volname "$(DMG_VOLUME)" \
 		-srcfolder "$(DMG_ROOT)" \
 		-ov \
+		-fs HFS+ \
+		-format UDRW \
+		"$(DMG_RW)"
+	-hdiutil detach "$(DMG_MOUNT)" 2>/dev/null || true
+	rm -rf "$(DMG_MOUNT)"
+	hdiutil attach "$(DMG_RW)" -readwrite -noverify -noautoopen -mountpoint "$(DMG_MOUNT)"
+	osascript \
+		-e 'tell application "Finder"' \
+		-e 'tell disk "$(DMG_VOLUME)"' \
+		-e 'open' \
+		-e 'set current view of container window to icon view' \
+		-e 'set toolbar visible of container window to false' \
+		-e 'set statusbar visible of container window to false' \
+		-e 'set bounds of container window to {100, 100, 720, 460}' \
+		-e 'set viewOptions to icon view options of container window' \
+		-e 'set arrangement of viewOptions to not arranged' \
+		-e 'set icon size of viewOptions to 96' \
+		-e 'set background picture of viewOptions to POSIX file "$(DMG_MOUNT)/.background/background.png" as alias' \
+		-e 'set position of item "$(APP).app" to {145, 190}' \
+		-e 'set position of item "Applications" to {475, 190}' \
+		-e 'close' \
+		-e 'end tell' \
+		-e 'end tell' || true
+	sync
+	hdiutil detach "$(DMG_MOUNT)"
+	hdiutil convert "$(DMG_RW)" \
 		-format UDZO \
+		-ov \
+		-o \
 		"$(DMG_OUT)"
+	rm -rf "$(DMG_MOUNT)" "$(DMG_RW)"
 	@echo "Created disk image: $(DMG_OUT)"
 
 pkg: bundle
@@ -156,11 +191,6 @@ package: zip dmg pkg
 
 # Installation
 install: bundle
-	@# cleanup legacy CmdTabMax
-	-launchctl bootout $(LAUNCHD_UID) "$(OLD_PLIST)" 2>/dev/null
-	-launchctl disable "$(LAUNCHD_UID)/$(OLD_LABEL)" 2>/dev/null
-	-tccutil reset Accessibility $(OLD_LABEL) 2>/dev/null
-	-rm -rf "$(OLD_BUNDLE)" "$(OLD_PLIST)"
 	@# stop current service
 	-launchctl bootout $(LAUNCHD_UID) "$(PLIST_DST)" 2>/dev/null
 	if [ "$(RESET_ACCESSIBILITY)" != "0" ]; then \
@@ -173,7 +203,6 @@ install: bundle
 	@# install LaunchAgent plist
 	mkdir -p "$$(dirname "$(PLIST_DST)")"
 	sed "s|__BINARY__|$(INSTALL_BIN)|g" "$(PLIST_SRC)" > "$(PLIST_DST)"
-	-rm -f "/usr/local/bin/CmdTabMax" 2>/dev/null
 	launchctl enable "$(LAUNCHD_UID)/$(PLIST_LABEL)"
 	open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility" 2>/dev/null || true
 	open "$(APP_BUNDLE)" 2>/dev/null || true
@@ -183,8 +212,4 @@ uninstall:
 	-launchctl bootout $(LAUNCHD_UID) $(PLIST_DST) 2>/dev/null
 	-tccutil reset Accessibility $(PLIST_LABEL) 2>/dev/null
 	-rm -rf "$(APP_BUNDLE)" "$(PLIST_DST)"
-	@# also clean legacy
-	-launchctl bootout $(LAUNCHD_UID) "$(OLD_PLIST)" 2>/dev/null
-	-tccutil reset Accessibility $(OLD_LABEL) 2>/dev/null
-	-rm -rf "$(OLD_BUNDLE)" "$(OLD_PLIST)"
 	@echo "Uninstalled."

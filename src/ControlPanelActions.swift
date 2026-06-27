@@ -33,10 +33,10 @@ extension ControlPanelDelegate {
         restartPromptShown = true
 
         let alert = NSAlert()
-        alert.messageText = "需要重启软件"
-        alert.informativeText = "辅助功能权限已授权。为确保新的权限状态生效，请重启 CmdTabUltra。"
+        alert.messageText = localized("alert.restart.title")
+        alert.informativeText = localized("alert.restart.message")
         alert.alertStyle = .informational
-        alert.addButton(withTitle: "重启软件")
+        alert.addButton(withTitle: localized("control.restart"))
         alert.runModal()
         relaunchApplication()
     }
@@ -64,13 +64,13 @@ extension ControlPanelDelegate {
     @objc func startClicked() {
         let status = currentServiceStatus()
         if !status.accessibilityGranted {
-            if startButton.title == "重启软件" {
+            if startButton.title == localized("control.restart") {
                 let refreshedStatus = currentServiceStatus()
                 if refreshedStatus.accessibilityGranted {
                     promptRestartAfterAuthorization()
                 } else {
                     authorizationFlowStarted = true
-                    setMessage("请先在辅助功能设置中允许该应用，授权完成后会提示重启软件。", protectingFor: 3)
+                    setMessage(localized("message.allowAccessibilityFirst"), protectingFor: 3)
                     let opts =
                         [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
                         as CFDictionary
@@ -81,21 +81,21 @@ extension ControlPanelDelegate {
 
             authorizationFlowStarted = true
             restartPromptShown = false
-            setMessage("已打开辅助功能设置。授权完成后会提示重启软件。", protectingFor: 3)
+            setMessage(localized("message.openedAccessibility"), protectingFor: 3)
             let opts =
                 [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
             _ = AXIsProcessTrustedWithOptions(opts)
-            startButton.title = "重启软件"
+            startButton.title = localized("control.restart")
             return
         }
 
         isStarting = true
         setControlsEnabled(false)
-        setMessage("正在启动服务…")
+        setMessage(localized("message.starting"))
 
         statusDot.stringValue = "●"
         statusDot.textColor = .systemYellow
-        statusValue.stringValue = "服务就绪中"
+        statusValue.stringValue = localized("state.readying")
         statusValue.textColor = .systemYellow
 
         DispatchQueue.global(qos: .userInitiated).async {
@@ -106,13 +106,13 @@ extension ControlPanelDelegate {
                 self.isStarting = false
                 if msg == "Started" && newStatus.agentReady {
                     self.hasJustStarted = true
-                    self.setMessage("启动完成", protectingFor: 4)
+                    self.setMessage(localized("state.started"), protectingFor: 4)
                 } else if msg == "Started" {
                     self.hasJustStarted = false
                     self.setMessage(
                         newStatus.accessibilityGranted
-                            ? "服务已启动，正在等待监听模块就绪。"
-                            : "服务已启动，但辅助功能未授权，功能暂不可用。", protectingFor: 4)
+                            ? localized("message.startedWaitingAgent")
+                            : localized("message.startedUnauthorized"), protectingFor: 4)
                 } else {
                     self.setMessage(msg, protectingFor: 4)
                 }
@@ -125,11 +125,11 @@ extension ControlPanelDelegate {
         hasJustStarted = false
         isStopping = true
         setControlsEnabled(false)
-        setMessage("正在停止服务…")
+        setMessage(localized("message.stopping"))
 
         statusDot.stringValue = "●"
         statusDot.textColor = .systemYellow
-        statusValue.stringValue = "停止中"
+        statusValue.stringValue = localized("state.stopping")
         statusValue.textColor = .systemYellow
 
         DispatchQueue.global(qos: .userInitiated).async {
@@ -138,7 +138,10 @@ extension ControlPanelDelegate {
             let newStatus = currentServiceStatus()
             DispatchQueue.main.async {
                 self.isStopping = false
-                self.setMessage(msg == "Stopped" ? "已停止" : msg, protectingFor: 3)
+                self.setMessage(
+                    msg == "Stopped" ? localized("state.stopped") : msg,
+                    protectingFor: 3
+                )
                 self.applyStatus(newStatus)
             }
         }
@@ -153,8 +156,8 @@ extension ControlPanelDelegate {
             DispatchQueue.main.async {
                 let zhMsg: String
                 switch msg {
-                case "Auto-start enabled": zhMsg = "已开启开机自启"
-                case "Auto-start disabled": zhMsg = "已关闭开机自启"
+                case "Auto-start enabled": zhMsg = localized("message.autoStartEnabled")
+                case "Auto-start disabled": zhMsg = localized("message.autoStartDisabled")
                 default: zhMsg = msg
                 }
                 self.setMessage(zhMsg, protectingFor: 3)

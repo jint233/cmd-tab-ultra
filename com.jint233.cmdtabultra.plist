@@ -4,10 +4,10 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.stoutput.cmdtabultra</string>
+    <string>com.jint233.cmdtabultra</string>
 
     <key>Version</key>
-    <string>1.0.1</string>
+    <string>1.0.2</string>
 
     <key>ProgramArguments</key>
     <array>

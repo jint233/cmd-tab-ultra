@@ -26,7 +26,7 @@ extension ControlPanelDelegate {
         let title = NSTextField(labelWithString: appName)
         title.font = .systemFont(ofSize: 22, weight: .bold)
 
-        let subtitle = NSTextField(labelWithString: "Cmd-Tab 窗口自动恢复工具")
+        let subtitle = NSTextField(labelWithString: localized("app.subtitle"))
         subtitle.font = .systemFont(ofSize: 11)
         subtitle.textColor = .secondaryLabelColor
 
@@ -60,10 +60,10 @@ extension ControlPanelDelegate {
         card.fillColor = .controlBackgroundColor
         card.translatesAutoresizingMaskIntoConstraints = false
 
-        let row1 = createRow(label: label("版本"), value: versionValue)
-        let row2 = createRow(label: label("进程 PID"), value: pidValue)
-        let row3 = createRow(label: label("重复实例"), value: duplicateValue)
-        let row4 = createRow(label: label("开机自启"), value: autoStartSwitch)
+        let row1 = createRow(label: label(localized("status.version")), value: versionValue)
+        let row2 = createRow(label: label(localized("status.pid")), value: pidValue)
+        let row3 = createRow(label: label(localized("status.duplicates")), value: duplicateValue)
+        let row4 = createRow(label: label(localized("status.autoStart")), value: autoStartSwitch)
 
         let rowsStack = NSStackView(views: [row1, row2, row3, row4])
         rowsStack.orientation = .vertical

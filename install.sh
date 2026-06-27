@@ -5,31 +5,15 @@ REPO="jint233/cmd-tab-ultra"
 BINARY_NAME="CmdTabUltra"
 APP_BUNDLE="$HOME/Applications/CmdTabUltra.app"
 BINARY="$APP_BUNDLE/Contents/MacOS/$BINARY_NAME"
-PLIST_LABEL="com.stoutput.cmdtabultra"
+PLIST_LABEL="com.jint233.cmdtabultra"
 PLIST_FILE="$HOME/Library/LaunchAgents/$PLIST_LABEL.plist"
 LAUNCHD_UID="gui/$(id -u)"
 RESET_ACCESSIBILITY="${RESET_ACCESSIBILITY:-1}"
-
-# Legacy CmdTabMax identifiers
-OLD_LABEL="com.stoutput.cmdtabmax"
-OLD_PLIST="$HOME/Library/LaunchAgents/$OLD_LABEL.plist"
-OLD_BUNDLE="$HOME/Applications/CmdTabMax.app"
 
 # Parse arguments
 LOCAL_MODE=false
 if [[ "${1:-}" == "--local" ]]; then
   LOCAL_MODE=true
-fi
-
-# Cleanup legacy CmdTabMax
-
-if [ -f "$OLD_PLIST" ] || [ -d "$OLD_BUNDLE" ]; then
-  echo "Cleaning up legacy CmdTabMax..."
-  launchctl bootout "$LAUNCHD_UID" "$OLD_PLIST" 2>/dev/null || true
-  launchctl disable "$LAUNCHD_UID/$OLD_LABEL" 2>/dev/null || true
-  tccutil reset Accessibility "$OLD_LABEL" 2>/dev/null || true
-  rm -rf "$OLD_BUNDLE" "$OLD_PLIST"
-  rm -f "/usr/local/bin/CmdTabMax" 2>/dev/null || true
 fi
 
 # Install app bundle

@@ -1,0 +1,38 @@
+"app.subtitle" = "Cmd-Tab 窗口自动恢复工具";
+
+"control.start" = "启动";
+"control.stop" = "停止";
+"control.refresh" = "刷新";
+"control.restart" = "重启软件";
+"control.authorize" = "去授权";
+
+"status.version" = "版本";
+"status.pid" = "进程 PID";
+"status.duplicates" = "重复实例";
+"status.autoStart" = "开机自启";
+"status.none" = "无";
+
+"state.waitingAuthorization" = "等待授权";
+"state.unauthorized" = "未授权";
+"state.started" = "启动完成";
+"state.running" = "服务运行中";
+"state.readying" = "服务就绪中";
+"state.stopped" = "已停止";
+"state.stopping" = "停止中";
+
+"message.refreshing" = "正在刷新…";
+"message.allowAccessibilityThenRestart" = "请在辅助功能设置中允许该应用。授权完成后会提示重启软件。";
+"message.serviceRunningUnauthorized" = "服务进程已启动，但辅助功能未授权，当前功能不会生效。请点击「去授权」进行设置。";
+"message.accessibilityRequired" = "使用此工具需要辅助功能权限，请点击「去授权」进行设置。";
+"message.agentNotReady" = "服务进程已启动，但监听模块尚未就绪；请确认辅助功能授权已允许 CmdTabUltra。";
+"message.allowAccessibilityFirst" = "请先在辅助功能设置中允许该应用，授权完成后会提示重启软件。";
+"message.openedAccessibility" = "已打开辅助功能设置。授权完成后会提示重启软件。";
+"message.starting" = "正在启动服务…";
+"message.startedWaitingAgent" = "服务已启动，正在等待监听模块就绪。";
+"message.startedUnauthorized" = "服务已启动，但辅助功能未授权，功能暂不可用。";
+"message.stopping" = "正在停止服务…";
+"message.autoStartEnabled" = "已开启开机自启";
+"message.autoStartDisabled" = "已关闭开机自启";
+
+"alert.restart.title" = "需要重启软件";
+"alert.restart.message" = "辅助功能权限已授权。为确保新的权限状态生效，请重启 CmdTabUltra。";
