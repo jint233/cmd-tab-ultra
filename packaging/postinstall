@@ -1,0 +1,87 @@
+#!/bin/bash
+set -euo pipefail
+
+APP="CmdTabUltra"
+PLIST_LABEL="com.stoutput.cmdtabultra"
+OLD_LABEL="com.stoutput.cmdtabmax"
+RESET_ACCESSIBILITY="${RESET_ACCESSIBILITY:-1}"
+
+console_user=$(/usr/bin/stat -f %Su /dev/console)
+if [[ -z "$console_user" || "$console_user" == "root" ]]; then
+  console_user="${SUDO_USER:-}"
+fi
+
+if [[ -z "$console_user" || "$console_user" == "root" ]]; then
+  echo "Could not determine logged-in user" >&2
+  exit 1
+fi
+
+user_home=$(/usr/bin/dscl . -read "/Users/$console_user" NFSHomeDirectory | /usr/bin/awk '{print $2}')
+user_id=$(/usr/bin/id -u "$console_user")
+launchd_uid="gui/$user_id"
+
+run_as_console_user() {
+  /bin/launchctl asuser "$user_id" /usr/bin/sudo -u "$console_user" "$@"
+}
+
+payload_app="/Library/Application Support/$APP/$APP.app"
+app_bundle="$user_home/Applications/$APP.app"
+binary="$app_bundle/Contents/MacOS/$APP"
+plist_file="$user_home/Library/LaunchAgents/$PLIST_LABEL.plist"
+old_plist="$user_home/Library/LaunchAgents/$OLD_LABEL.plist"
+old_bundle="$user_home/Applications/CmdTabMax.app"
+ready_file="$user_home/Library/Application Support/$APP/agent-ready"
+
+version=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$payload_app/Contents/Info.plist" 2>/dev/null || echo "1.0.0")
+
+/bin/launchctl bootout "$launchd_uid" "$plist_file" 2>/dev/null || true
+/bin/launchctl bootout "$launchd_uid" "$old_plist" 2>/dev/null || true
+/bin/launchctl disable "$launchd_uid/$OLD_LABEL" 2>/dev/null || true
+run_as_console_user /usr/bin/tccutil reset Accessibility "$OLD_LABEL" 2>/dev/null || true
+if [[ "$RESET_ACCESSIBILITY" != "0" ]]; then
+  run_as_console_user /usr/bin/tccutil reset Accessibility "$PLIST_LABEL" 2>/dev/null || true
+fi
+
+/bin/rm -rf "$app_bundle"
+/bin/mkdir -p "$user_home/Applications" "$user_home/Library/LaunchAgents" "$user_home/Library/Application Support/$APP"
+/bin/cp -R "$payload_app" "$app_bundle"
+/usr/sbin/chown -R "$console_user":staff "$app_bundle" "$user_home/Library/Application Support/$APP"
+/bin/chmod +x "$binary"
+/bin/rm -f "$ready_file"
+
+/bin/cat > "$plist_file" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>$PLIST_LABEL</string>
+    <key>Version</key>
+    <string>$version</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>$binary</string>
+        <string>--agent</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/CmdTabUltra.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/CmdTabUltra.log</string>
+</dict>
+</plist>
+EOF
+
+/usr/sbin/chown "$console_user":staff "$plist_file"
+/bin/chmod 644 "$plist_file"
+
+/bin/rm -rf "$old_bundle" "$old_plist"
+/bin/rm -f /usr/local/bin/CmdTabMax 2>/dev/null || true
+
+/bin/launchctl enable "$launchd_uid/$PLIST_LABEL" 2>/dev/null || true
+
+exit 0

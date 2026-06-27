@@ -1,0 +1,35 @@
+import ApplicationServices
+import Cocoa
+
+@main
+struct CmdTabUltraApp {
+    static func main() {
+        // Disable stdout buffering so log output reaches the file immediately.
+        setbuf(stdout, nil)
+        // Register app activation observer (shared by agent mode).
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification,
+            object: nil,
+            queue: .main
+        ) { notification in
+            guard
+                let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey]
+                    as? NSRunningApplication
+            else { return }
+            handleActivatedApplication(app)
+        }
+
+        if !CommandLine.arguments.contains(agentArgument) {
+            let app = NSApplication.shared
+            let delegate = ControlPanelDelegate()
+            app.delegate = delegate
+            app.run()
+            return
+        }
+
+        requireAccessibility()
+        installEventTapWhenAvailable()
+
+        RunLoop.main.run()
+    }
+}
