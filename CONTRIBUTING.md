@@ -62,7 +62,7 @@ To publish from a clean `main` branch:
 scripts/release.sh
 ```
 
-The script requires GitHub CLI authentication and uploads the universal ZIP, DMG image, and installer package.
+The script requires GitHub CLI authentication and pushes a `v*` tag. GitHub Actions builds and uploads the universal ZIP, DMG image, and installer package.
 
 ## Documentation
 

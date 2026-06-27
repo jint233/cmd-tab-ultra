@@ -160,9 +160,9 @@ The PID in `agent-ready` should match the PID reported by `launchctl print`.
 1. Update the `Version` key in `com.stoutput.cmdtabultra.plist`.
 2. Verify `make lint` and `make universal`.
 3. Commit and push the version bump to `main`.
-4. Run `scripts/release.sh`.
+4. Run `scripts/release.sh` to push the release tag.
 
-The release script validates that the local `main` branch matches `origin/main`, builds the ZIP, DMG, and PKG assets, creates a signed Git tag, pushes it, and uploads assets with the GitHub CLI. The manual GitHub release workflow is available as a fallback, but the preferred release path is `scripts/release.sh`.
+The release script validates that the local `main` branch matches `origin/main`, creates a signed Git tag, and pushes it. GitHub Actions builds the ZIP, DMG, and PKG assets and publishes the release automatically when a `v*` tag is pushed.
 
 ## Current Scope
 

@@ -3,7 +3,6 @@ set -euo pipefail
 
 remote="${REMOTE:-origin}"
 branch="${BRANCH:-main}"
-repo="jint233/cmd-tab-ultra"
 plist="com.stoutput.cmdtabultra.plist"
 
 require_command() {
@@ -15,7 +14,6 @@ require_command() {
 
 require_command git
 require_command gh
-require_command make
 require_command /usr/libexec/PlistBuddy
 
 version=$(/usr/libexec/PlistBuddy -c "Print :Version" "$plist")
@@ -56,28 +54,7 @@ if git ls-remote --exit-code --tags "$remote" "$tag" >/dev/null 2>&1; then
   exit 1
 fi
 
-make clean
-make lint
-make package
-
-zip_path="dist/CmdTabUltra-universal.zip"
-dmg_path="dist/CmdTabUltra-$version.dmg"
-pkg_path="dist/CmdTabUltra-$version.pkg"
-
-if [[ ! -f "$zip_path" || ! -f "$dmg_path" || ! -f "$pkg_path" ]]; then
-  echo "Expected release assets were not generated." >&2
-  exit 1
-fi
-
 git tag -a "$tag" -m "Release $tag"
 git push "$remote" "$tag"
 
-gh release create "$tag" \
-  "$zip_path" \
-  "$dmg_path" \
-  "$pkg_path" \
-  --repo "$repo" \
-  --title "CmdTabUltra $version" \
-  --notes "Release $tag"
-
-echo "Published $tag to https://github.com/$repo/releases/tag/$tag"
+echo "Pushed $tag. GitHub Actions will build assets and publish the release."
