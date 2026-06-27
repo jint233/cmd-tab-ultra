@@ -1,5 +1,29 @@
 import Foundation
 
+func writeLaunchAgentPlist(binaryPath: String = installedBinaryPath) throws {
+    let plist: [String: Any] = [
+        "Label": serviceLabel,
+        "Version": appVersion,
+        "ProgramArguments": [binaryPath, agentArgument],
+        "RunAtLoad": true,
+        "KeepAlive": true,
+        "StandardOutPath": "/tmp/\(appName).log",
+        "StandardErrorPath": "/tmp/\(appName).log",
+    ]
+
+    let data = try PropertyListSerialization.data(
+        fromPropertyList: plist,
+        format: .xml,
+        options: 0
+    )
+    let url = URL(fileURLWithPath: launchAgentPath)
+    try FileManager.default.createDirectory(
+        at: url.deletingLastPathComponent(),
+        withIntermediateDirectories: true
+    )
+    try data.write(to: url, options: .atomic)
+}
+
 @discardableResult
 func stopService() -> String {
     let status = currentServiceStatus()
@@ -19,6 +43,11 @@ func startService() -> String {
     if status.loaded {
         _ = runCommand("/bin/launchctl", ["bootout", serviceDomain, launchAgentPath])
     }
+    do {
+        try writeLaunchAgentPlist()
+    } catch {
+        return "Failed to write LaunchAgent: \(error.localizedDescription)"
+    }
     terminateDuplicateAgents(keeping: nil)
     _ = runCommand("/bin/launchctl", ["enable", serviceIdentifier])
     let bootstrap = runCommand("/bin/launchctl", ["bootstrap", serviceDomain, launchAgentPath])
@@ -34,6 +63,14 @@ func startService() -> String {
 
 @discardableResult
 func setAutoStartEnabled(_ enabled: Bool) -> String {
+    if enabled {
+        do {
+            try writeLaunchAgentPlist()
+        } catch {
+            return "Failed to write LaunchAgent: \(error.localizedDescription)"
+        }
+    }
+
     let command = enabled ? "enable" : "disable"
     let result = runCommand("/bin/launchctl", [command, serviceIdentifier])
     return result.status == 0

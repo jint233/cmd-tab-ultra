@@ -57,6 +57,7 @@ PKG_ROOT      := $(DIST)/pkgroot
 PKG_SCRIPTS   := $(DIST)/pkg-scripts
 PKG_UNSIGNED  := $(DIST)/$(APP)-$(VERSION)-unsigned.pkg
 PKG_OUT       := $(DIST)/$(APP)-$(VERSION).pkg
+DMG_ROOT      := $(DIST)/dmgroot
 DMG_OUT       := $(DIST)/$(APP)-$(VERSION).dmg
 
 # Local target directories for bundle build
@@ -117,10 +118,13 @@ zip: bundle
 	@echo "Created distributable ZIP: $(DIST)/$(APP)-universal.zip"
 
 dmg: bundle
-	rm -f "$(DMG_OUT)"
+	rm -rf "$(DMG_ROOT)" "$(DMG_OUT)"
+	mkdir -p "$(DMG_ROOT)"
+	cp -R "$(DIST_APP)" "$(DMG_ROOT)/$(APP).app"
+	ln -s /Applications "$(DMG_ROOT)/Applications"
 	hdiutil create \
 		-volname "$(APP)" \
-		-srcfolder "$(DIST_APP)" \
+		-srcfolder "$(DMG_ROOT)" \
 		-ov \
 		-format UDZO \
 		"$(DMG_OUT)"

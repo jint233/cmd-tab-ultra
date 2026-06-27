@@ -3,7 +3,7 @@ import Cocoa
 let appName = "CmdTabUltra"
 let serviceLabel = "com.stoutput.cmdtabultra"
 let agentArgument = "--agent"
-let defaultVersion = "1.0.0"
+let defaultVersion = "1.0.1"
 
 let tabKeyCode: Int64 = 48
 let nKeyCode: CGKeyCode = 0x2D
@@ -31,7 +31,8 @@ var launchAgentPath: String {
 }
 
 var installedBinaryPath: String {
-    "\(NSHomeDirectory())/Applications/\(appName).app/Contents/MacOS/\(appName)"
+    Bundle.main.executableURL?.path
+        ?? "\(NSHomeDirectory())/Applications/\(appName).app/Contents/MacOS/\(appName)"
 }
 
 var agentReadyPath: String {

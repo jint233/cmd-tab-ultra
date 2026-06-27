@@ -26,19 +26,21 @@ Build and install locally:
 make install
 ```
 
-Build an installer package:
+Build a drag-and-drop DMG:
 
 ```sh
-make pkg
-open dist/CmdTabUltra-1.0.0.pkg
+make dmg
+open dist/CmdTabUltra-<version>.dmg
 ```
 
 After installation:
 
-1. Open `~/Applications/CmdTabUltra.app`.
-2. Grant Accessibility permission when prompted.
-3. Restart the app if the control panel asks for it.
+1. Drag `CmdTabUltra.app` into `Applications`.
+2. Open `CmdTabUltra.app`.
+3. Grant Accessibility permission when prompted.
 4. Start the background service from the control panel if it is not already running.
+
+The control panel writes the per-user LaunchAgent from the app's current location, so the app can be installed in `/Applications` or `~/Applications`.
 
 ## How It Works
 
@@ -115,15 +117,17 @@ The repository follows these baseline rules:
 
 ## Installation Notes
 
-The package installs:
+The DMG contains:
 
-- `CmdTabUltra.app` to `~/Applications/CmdTabUltra.app`
-- `com.stoutput.cmdtabultra.plist` to `~/Library/LaunchAgents/`
+- `CmdTabUltra.app`
+- an `Applications` shortcut for drag-and-drop installation
+
+The app writes `com.stoutput.cmdtabultra.plist` to `~/Library/LaunchAgents/` when the service is started from the control panel.
 
 If you replace the app without a stable signing identity, macOS may require Accessibility permission again. To preserve permission across upgrades, keep these stable:
 
 - bundle identifier: `com.stoutput.cmdtabultra`
-- install path: `~/Applications/CmdTabUltra.app`
+- app location selected by the user
 - code-signing identity
 
 To build with signing:

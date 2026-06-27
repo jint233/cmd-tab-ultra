@@ -11,9 +11,14 @@ func agentPids() -> [Int] {
         }
         let pidText = text[..<firstSpace]
         let command = text[firstSpace...].trimmingCharacters(in: .whitespaces)
-        guard command == "\(installedBinaryPath) \(agentArgument)" else { return nil }
+        guard isAgentCommand(command) else { return nil }
         return Int(pidText)
     }
+}
+
+func isAgentCommand(_ command: String) -> Bool {
+    command == "\(installedBinaryPath) \(agentArgument)"
+        || command.hasSuffix("/\(appName).app/Contents/MacOS/\(appName) \(agentArgument)")
 }
 
 func terminateDuplicateAgents(keeping keepPid: Int?) {
