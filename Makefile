@@ -149,8 +149,8 @@ dmg: bundle
 		-e 'set arrangement of viewOptions to not arranged' \
 		-e 'set icon size of viewOptions to 96' \
 		-e 'set background picture of viewOptions to POSIX file "$(DMG_MOUNT)/.background/background.png" as alias' \
-		-e 'set position of item "$(APP).app" to {145, 190}' \
-		-e 'set position of item "Applications" to {475, 190}' \
+		-e 'set position of item "$(APP).app" to {145, 160}' \
+		-e 'set position of item "Applications" to {475, 160}' \
 		-e 'close' \
 		-e 'end tell' \
 		-e 'end tell' || true

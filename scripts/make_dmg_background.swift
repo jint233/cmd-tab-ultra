@@ -22,7 +22,7 @@ bounds.fill()
 
 let arrowColor = NSColor(calibratedRed: 0.02, green: 0.48, blue: 1.0, alpha: 1.0)
 let installGuideCenterX: CGFloat = 310
-let arrowY: CGFloat = 210
+let arrowY: CGFloat = 240
 let arrowTailX = installGuideCenterX - 82
 let arrowHeadBaseX = installGuideCenterX + 30
 let arrowTipX = installGuideCenterX + 78
@@ -50,7 +50,7 @@ let hintAttributes: [NSAttributedString.Key: Any] = [
 ]
 let hintSize = hint.size(withAttributes: hintAttributes)
 hint.draw(
-    at: CGPoint(x: installGuideCenterX - hintSize.width / 2, y: 135),
+    at: CGPoint(x: installGuideCenterX - hintSize.width / 2, y: 165),
     withAttributes: hintAttributes
 )
 

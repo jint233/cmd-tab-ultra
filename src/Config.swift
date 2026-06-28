@@ -3,7 +3,7 @@ import Cocoa
 let appName = "CmdTabUltra"
 let serviceLabel = "com.jint233.cmdtabultra"
 let agentArgument = "--agent"
-let defaultVersion = "1.0.5"
+let defaultVersion = "1.0.6"
 
 let tabKeyCode: Int64 = 48
 let nKeyCode: CGKeyCode = 0x2D
