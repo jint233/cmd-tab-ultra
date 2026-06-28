@@ -21,18 +21,24 @@ NSColor(calibratedWhite: 0.98, alpha: 1).setFill()
 bounds.fill()
 
 let arrowColor = NSColor(calibratedRed: 0.02, green: 0.48, blue: 1.0, alpha: 1.0)
+let installGuideCenterX: CGFloat = 310
+let arrowY: CGFloat = 210
+let arrowTailX = installGuideCenterX - 82
+let arrowHeadBaseX = installGuideCenterX + 30
+let arrowTipX = installGuideCenterX + 78
+
 let arrowPath = NSBezierPath()
-arrowPath.move(to: CGPoint(x: 230, y: 210))
-arrowPath.line(to: CGPoint(x: 335, y: 210))
+arrowPath.move(to: CGPoint(x: arrowTailX, y: arrowY))
+arrowPath.line(to: CGPoint(x: arrowHeadBaseX, y: arrowY))
 arrowPath.lineWidth = 16
 arrowPath.lineCapStyle = .round
 arrowColor.setStroke()
 arrowPath.stroke()
 
 let arrowHead = NSBezierPath()
-arrowHead.move(to: CGPoint(x: 375, y: 210))
-arrowHead.line(to: CGPoint(x: 328, y: 244))
-arrowHead.line(to: CGPoint(x: 328, y: 176))
+arrowHead.move(to: CGPoint(x: arrowTipX, y: arrowY))
+arrowHead.line(to: CGPoint(x: arrowHeadBaseX, y: arrowY + 34))
+arrowHead.line(to: CGPoint(x: arrowHeadBaseX, y: arrowY - 34))
 arrowHead.close()
 arrowColor.setFill()
 arrowHead.fill()
@@ -44,7 +50,7 @@ let hintAttributes: [NSAttributedString.Key: Any] = [
 ]
 let hintSize = hint.size(withAttributes: hintAttributes)
 hint.draw(
-    at: CGPoint(x: (size.width - hintSize.width) / 2, y: 135),
+    at: CGPoint(x: installGuideCenterX - hintSize.width / 2, y: 135),
     withAttributes: hintAttributes
 )
 

@@ -62,6 +62,8 @@ extension ControlPanelDelegate {
     }
 
     @objc func startClicked() {
+        removeDuplicateUserInstallIfNeeded()
+
         let status = currentServiceStatus()
         if !status.accessibilityGranted {
             if startButton.title == localized("control.restart") {
@@ -71,6 +73,7 @@ extension ControlPanelDelegate {
                 } else {
                     authorizationFlowStarted = true
                     setMessage(localized("message.allowAccessibilityFirst"), protectingFor: 3)
+                    resetAccessibilityPermission()
                     let opts =
                         [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
                         as CFDictionary
@@ -82,6 +85,7 @@ extension ControlPanelDelegate {
             authorizationFlowStarted = true
             restartPromptShown = false
             setMessage(localized("message.openedAccessibility"), protectingFor: 3)
+            resetAccessibilityPermission()
             let opts =
                 [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
             _ = AXIsProcessTrustedWithOptions(opts)

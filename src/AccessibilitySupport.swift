@@ -33,3 +33,7 @@ func requireAccessibility() {
     }
     logAgent("Accessibility granted; continuing")
 }
+
+func resetAccessibilityPermission() {
+    _ = runCommand("/usr/bin/tccutil", ["reset", "Accessibility", serviceLabel])
+}
