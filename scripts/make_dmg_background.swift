@@ -22,29 +22,29 @@ bounds.fill()
 
 let arrowColor = NSColor(calibratedRed: 0.02, green: 0.48, blue: 1.0, alpha: 1.0)
 let arrowPath = NSBezierPath()
-arrowPath.move(to: CGPoint(x: 250, y: 208))
-arrowPath.line(to: CGPoint(x: 390, y: 208))
-arrowPath.lineWidth = 18
+arrowPath.move(to: CGPoint(x: 230, y: 210))
+arrowPath.line(to: CGPoint(x: 335, y: 210))
+arrowPath.lineWidth = 16
 arrowPath.lineCapStyle = .round
 arrowColor.setStroke()
 arrowPath.stroke()
 
 let arrowHead = NSBezierPath()
-arrowHead.move(to: CGPoint(x: 430, y: 208))
-arrowHead.line(to: CGPoint(x: 372, y: 248))
-arrowHead.line(to: CGPoint(x: 372, y: 168))
+arrowHead.move(to: CGPoint(x: 375, y: 210))
+arrowHead.line(to: CGPoint(x: 328, y: 244))
+arrowHead.line(to: CGPoint(x: 328, y: 176))
 arrowHead.close()
 arrowColor.setFill()
 arrowHead.fill()
 
 let hint = "Drop to install" as NSString
 let hintAttributes: [NSAttributedString.Key: Any] = [
-    .font: NSFont.systemFont(ofSize: 22, weight: .semibold),
+    .font: NSFont.systemFont(ofSize: 19, weight: .semibold),
     .foregroundColor: arrowColor,
 ]
 let hintSize = hint.size(withAttributes: hintAttributes)
 hint.draw(
-    at: CGPoint(x: (size.width - hintSize.width) / 2, y: 118),
+    at: CGPoint(x: (size.width - hintSize.width) / 2, y: 135),
     withAttributes: hintAttributes
 )
 

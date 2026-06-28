@@ -123,6 +123,7 @@ zip: bundle
 
 dmg: bundle
 	swift scripts/make_dmg_background.swift
+	-hdiutil detach "$(DMG_MOUNT)" 2>/dev/null || true
 	rm -rf "$(DMG_ROOT)" "$(DMG_MOUNT)" "$(DMG_RW)" "$(DMG_OUT)"
 	mkdir -p "$(DMG_ROOT)/.background"
 	cp -R "$(DIST_APP)" "$(DMG_ROOT)/$(APP).app"
@@ -135,8 +136,6 @@ dmg: bundle
 		-fs HFS+ \
 		-format UDRW \
 		"$(DMG_RW)"
-	-hdiutil detach "$(DMG_MOUNT)" 2>/dev/null || true
-	rm -rf "$(DMG_MOUNT)"
 	hdiutil attach "$(DMG_RW)" -readwrite -noverify -noautoopen -mountpoint "$(DMG_MOUNT)"
 	osascript \
 		-e 'tell application "Finder"' \
