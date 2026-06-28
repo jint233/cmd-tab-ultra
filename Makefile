@@ -141,12 +141,13 @@ dmg: bundle
 		-e 'set current view of container window to icon view' \
 		-e 'set toolbar visible of container window to false' \
 		-e 'set statusbar visible of container window to false' \
+		-e 'set pathbar visible of container window to false' \
 		-e 'set bounds of container window to {100, 100, 720, 460}' \
 		-e 'set viewOptions to icon view options of container window' \
 		-e 'set arrangement of viewOptions to not arranged' \
 		-e 'set icon size of viewOptions to 96' \
-		-e 'set position of item "$(APP).app" to {170, 175}' \
-		-e 'set position of item "Applications" to {450, 175}' \
+		-e 'set position of item "$(APP).app" to {155, 135}' \
+		-e 'set position of item "Applications" to {465, 135}' \
 		-e 'close' \
 		-e 'end tell' \
 		-e 'end tell' || true
