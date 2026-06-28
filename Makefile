@@ -60,8 +60,7 @@ PKG_OUT       := $(DIST)/$(APP)-$(VERSION).pkg
 DMG_ROOT      := $(DIST)/dmgroot
 DMG_RW        := $(DIST)/$(APP)-$(VERSION)-rw.dmg
 DMG_OUT       := $(DIST)/$(APP)-$(VERSION).dmg
-DMG_BACKGROUND:= $(DIST)/dmg-background.png
-DMG_VOLUME    := $(APP) Installer
+DMG_VOLUME    := $(APP)
 DMG_MOUNT     := /Volumes/$(DMG_VOLUME)
 
 # Local target directories for bundle build
@@ -122,12 +121,10 @@ zip: bundle
 	@echo "Created distributable ZIP: $(DIST)/$(APP)-universal.zip"
 
 dmg: bundle
-	swift scripts/make_dmg_background.swift
 	-hdiutil detach "$(DMG_MOUNT)" 2>/dev/null || true
 	rm -rf "$(DMG_ROOT)" "$(DMG_MOUNT)" "$(DMG_RW)" "$(DMG_OUT)"
-	mkdir -p "$(DMG_ROOT)/.background"
+	mkdir -p "$(DMG_ROOT)"
 	cp -R "$(DIST_APP)" "$(DMG_ROOT)/$(APP).app"
-	cp "$(DMG_BACKGROUND)" "$(DMG_ROOT)/.background/background.png"
 	ln -s /Applications "$(DMG_ROOT)/Applications"
 	hdiutil create \
 		-volname "$(DMG_VOLUME)" \
@@ -148,9 +145,8 @@ dmg: bundle
 		-e 'set viewOptions to icon view options of container window' \
 		-e 'set arrangement of viewOptions to not arranged' \
 		-e 'set icon size of viewOptions to 96' \
-		-e 'set background picture of viewOptions to POSIX file "$(DMG_MOUNT)/.background/background.png" as alias' \
-		-e 'set position of item "$(APP).app" to {145, 160}' \
-		-e 'set position of item "Applications" to {475, 160}' \
+		-e 'set position of item "$(APP).app" to {170, 175}' \
+		-e 'set position of item "Applications" to {450, 175}' \
 		-e 'close' \
 		-e 'end tell' \
 		-e 'end tell' || true
