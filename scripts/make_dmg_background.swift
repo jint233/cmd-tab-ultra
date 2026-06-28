@@ -17,55 +17,34 @@ let image = NSImage(size: size)
 image.lockFocus()
 
 let bounds = CGRect(origin: .zero, size: size)
-NSColor(calibratedWhite: 0.97, alpha: 1).setFill()
+NSColor(calibratedWhite: 0.98, alpha: 1).setFill()
 bounds.fill()
 
-let title = "Drag CmdTabUltra to Applications" as NSString
-let titleAttributes: [NSAttributedString.Key: Any] = [
-    .font: NSFont.systemFont(ofSize: 22, weight: .semibold),
-    .foregroundColor: NSColor(calibratedWhite: 0.20, alpha: 1),
-]
-let titleSize = title.size(withAttributes: titleAttributes)
-title.draw(
-    at: CGPoint(x: (size.width - titleSize.width) / 2, y: 292),
-    withAttributes: titleAttributes
-)
-
-let subtitle = "Replace the old app if macOS asks." as NSString
-let subtitleAttributes: [NSAttributedString.Key: Any] = [
-    .font: NSFont.systemFont(ofSize: 13, weight: .regular),
-    .foregroundColor: NSColor(calibratedWhite: 0.38, alpha: 1),
-]
-let subtitleSize = subtitle.size(withAttributes: subtitleAttributes)
-subtitle.draw(
-    at: CGPoint(x: (size.width - subtitleSize.width) / 2, y: 270),
-    withAttributes: subtitleAttributes
-)
-
+let arrowColor = NSColor(calibratedRed: 0.02, green: 0.48, blue: 1.0, alpha: 1.0)
 let arrowPath = NSBezierPath()
-arrowPath.move(to: CGPoint(x: 245, y: 172))
-arrowPath.line(to: CGPoint(x: 374, y: 172))
-arrowPath.lineWidth = 10
+arrowPath.move(to: CGPoint(x: 250, y: 208))
+arrowPath.line(to: CGPoint(x: 390, y: 208))
+arrowPath.lineWidth = 18
 arrowPath.lineCapStyle = .round
-NSColor.systemBlue.setStroke()
+arrowColor.setStroke()
 arrowPath.stroke()
 
 let arrowHead = NSBezierPath()
-arrowHead.move(to: CGPoint(x: 374, y: 172))
-arrowHead.line(to: CGPoint(x: 346, y: 194))
-arrowHead.line(to: CGPoint(x: 346, y: 150))
+arrowHead.move(to: CGPoint(x: 430, y: 208))
+arrowHead.line(to: CGPoint(x: 372, y: 248))
+arrowHead.line(to: CGPoint(x: 372, y: 168))
 arrowHead.close()
-NSColor.systemBlue.setFill()
+arrowColor.setFill()
 arrowHead.fill()
 
 let hint = "Drop to install" as NSString
 let hintAttributes: [NSAttributedString.Key: Any] = [
-    .font: NSFont.systemFont(ofSize: 13, weight: .medium),
-    .foregroundColor: NSColor.systemBlue,
+    .font: NSFont.systemFont(ofSize: 22, weight: .semibold),
+    .foregroundColor: arrowColor,
 ]
 let hintSize = hint.size(withAttributes: hintAttributes)
 hint.draw(
-    at: CGPoint(x: (size.width - hintSize.width) / 2, y: 124),
+    at: CGPoint(x: (size.width - hintSize.width) / 2, y: 118),
     withAttributes: hintAttributes
 )
 

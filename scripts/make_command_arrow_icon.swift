@@ -41,40 +41,26 @@ func drawIcon(size: Int) -> NSImage {
     NSColor.clear.setFill()
     bounds.fill()
 
-    // Keycap shadow (Apple Style)
+    // Keycap shadow.
     let shadow = NSShadow()
     shadow.shadowOffset = NSSize(width: 0, height: -side * 0.015)
-    shadow.shadowBlurRadius = side * 0.02
-    shadow.shadowColor = NSColor.black.withAlphaComponent(0.15)
+    shadow.shadowBlurRadius = side * 0.026
+    shadow.shadowColor = NSColor.black.withAlphaComponent(0.16)
     shadow.set()
 
-    // Keycap outer housing (Light Silver / Apple keyboard style)
-    let outer = CGRect(x: side * 0.098, y: side * 0.094, width: side * 0.804, height: side * 0.810)
-    let outerPath = NSBezierPath(roundedRect: outer, xRadius: side * 0.165, yRadius: side * 0.165)
-    NSColor(calibratedWhite: 0.82, alpha: 1).setFill()
-    outerPath.fill()
+    let keycap = CGRect(x: side * 0.135, y: side * 0.135, width: side * 0.730, height: side * 0.730)
+    let keycapPath = NSBezierPath(roundedRect: keycap, xRadius: side * 0.135, yRadius: side * 0.135)
+    NSColor.white.setFill()
+    keycapPath.fill()
 
-    // Remove shadow for the face and interior elements
-    let noShadow = NSShadow()
-    noShadow.set()
+    NSShadow().set()
 
-    // Keycap face (pure white/silver gradient)
-    let face = CGRect(x: side * 0.135, y: side * 0.135, width: side * 0.730, height: side * 0.730)
-    let facePath = NSBezierPath(roundedRect: face, xRadius: side * 0.140, yRadius: side * 0.140)
-    let faceGradient = NSGradient(colors: [
-        NSColor(calibratedWhite: 0.98, alpha: 1),
-        NSColor(calibratedWhite: 0.92, alpha: 1),
-        NSColor(calibratedWhite: 0.96, alpha: 1),
-    ])!
-    faceGradient.draw(in: facePath, angle: -45)
-
-    // Face inner highlight border
-    NSColor(calibratedWhite: 1.0, alpha: 0.7).setStroke()
-    facePath.lineWidth = max(1, side * 0.008)
-    facePath.stroke()
+    NSColor.white.setStroke()
+    keycapPath.lineWidth = max(1, side * 0.006)
+    keycapPath.stroke()
 
     // Draw Command Symbol (⌘)
-    let glyphColor = NSColor(calibratedWhite: 0.22, alpha: 1)  // Premium graphite
+    let glyphColor = NSColor(calibratedWhite: 0.22, alpha: 1)
     let command = "⌘" as NSString
     let font = NSFont.systemFont(ofSize: side * 0.32, weight: .regular)
     let attributes: [NSAttributedString.Key: Any] = [
@@ -88,10 +74,10 @@ func drawIcon(size: Int) -> NSImage {
     )
     command.draw(at: commandPoint, withAttributes: attributes)
 
-    // Draw "Ultra" text in an accent color that stays readable at small sizes.
+    // Draw "Ultra" text.
     let ultra = "Ultra" as NSString
     let ultraFont = NSFont.systemFont(ofSize: side * 0.065, weight: .bold)
-    let ultraColor = NSColor(calibratedRed: 1.0, green: 0.35, blue: 0.0, alpha: 1.0)
+    let ultraColor = NSColor.black
 
     let ultraAttributes: [NSAttributedString.Key: Any] = [
         .font: ultraFont,
