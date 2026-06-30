@@ -1,16 +1,16 @@
 # CmdTabUltra
 
-CmdTabUltra is a macOS menu bar utility that restores an application's window when you switch to it with `Cmd-Tab`.
+[English](./README.md) | [简体中文](./README.zh-CN.md)
 
-It works without private frameworks. The agent listens for `Cmd-Tab` transitions, inspects the target app through the Accessibility API, and then restores or reopens a window when macOS would otherwise leave the app active with no visible window.
+CmdTabUltra is a macOS window restore utility. When you switch back to an app with `Cmd-Tab`, it restores a minimized window or reopens a window if macOS leaves the app active with no visible window.
 
 ## Features
 
-- Restores a minimized window after `Cmd-Tab`
-- Reopens an app when it has no standard window
-- Falls back to `Cmd-N` when macOS reopen does not create a window
-- Ships with a local control panel and LaunchAgent integration
-- Builds a universal app bundle, ZIP archive, DMG image, and `.pkg` installer
+- Restores minimized windows after `Cmd-Tab`
+- Reopens apps that have no standard visible window
+- Falls back to `Cmd-N` when app reopen does not create a window
+- Provides a local control panel for service status, startup, diagnostics, and language
+- Runs the background service through a per-user LaunchAgent
 
 ## Requirements
 
@@ -18,7 +18,7 @@ It works without private frameworks. The agent listens for `Cmd-Tab` transitions
 - Xcode Command Line Tools
 - Accessibility permission for CmdTabUltra
 
-## Quick Start
+## Install
 
 Build and install locally:
 
@@ -26,35 +26,18 @@ Build and install locally:
 make install
 ```
 
-Build a drag-and-drop DMG:
+Build a DMG:
 
 ```sh
 make dmg
 open dist/CmdTabUltra-<version>.dmg
 ```
 
-After installation:
+After installing, open `CmdTabUltra.app`, grant Accessibility permission, then start the service from the control panel.
 
-1. Drag `CmdTabUltra.app` into `Applications`.
-2. Open `CmdTabUltra.app`.
-3. Grant Accessibility permission when prompted.
-4. Start the background service from the control panel if it is not already running.
+## Development
 
-The control panel writes the per-user LaunchAgent from the app's current location, so the app can be installed in `/Applications` or `~/Applications`.
-
-## How It Works
-
-When `Cmd-Tab` activates a new foreground app, CmdTabUltra:
-
-1. waits for the app activation event;
-2. inspects the app's standard windows through the Accessibility API;
-3. leaves the app alone if a visible window already exists;
-4. unminimizes one window if every standard window is minimized;
-5. reopens the app, then falls back to `Cmd-N`, when no standard window exists.
-
-## Build Targets
-
-Common development targets:
+Common commands:
 
 ```sh
 make help
@@ -68,107 +51,28 @@ make format
 make clean
 ```
 
-Create a GitHub release with the local GitHub CLI:
+Update the release version in [VERSION](./VERSION). Packaging, app metadata, installer names, and release tags use that file as the single version source.
 
-```sh
-scripts/release.sh
-```
-
-## Repository Layout
+Project layout:
 
 ```text
-src/
-  Main.swift
-  Config.swift
-  AccessibilitySupport.swift
-  EventTapController.swift
-  CmdTabSwitchState.swift
-  WindowState.swift
-  WindowActions.swift
-  ControlPanel*.swift
-  ShellCommand.swift
-  LaunchAgentStatus.swift
-  AgentProcess.swift
-  ServiceControl.swift
-
-resources/     App icon and bundled assets
-  *.lproj/      Localized UI strings
-scripts/       Local helper scripts
-packaging/     Installer metadata and postinstall script
-docs/          Project conventions and development notes
-.github/       CI workflow and collaboration templates
-dist/          Generated output; do not commit
+src/          Swift source
+VERSION       Release version
+resources/    App icon and localized strings
+scripts/      Local helper scripts
+packaging/    Installer metadata
+docs/         Development notes
+dist/         Generated artifacts
 ```
 
-## Development Workflow
+See [CONTRIBUTING.md](./CONTRIBUTING.md) and [docs/development.md](./docs/development.md) for contribution and maintenance notes.
 
-Project conventions are documented here:
+## Notes
 
-- [CONTRIBUTING.md](./CONTRIBUTING.md)
-- [development.md](./docs/development.md)
-- [.swift-format](./.swift-format)
-- [.editorconfig](./.editorconfig)
+CmdTabUltra uses public macOS APIs and Accessibility permission. The control panel writes `com.jint233.cmdtabultra.plist` to `~/Library/LaunchAgents/` when the background service is started.
 
-The repository follows these baseline rules:
+Generated files in `dist/` should not be committed.
 
-- Swift code should align with the Swift API Design Guidelines and the existing local architecture.
-- Formatting should be deterministic and repository-wide.
-- Pull requests should stay scoped, include verification notes, and avoid unrelated refactors.
-- Generated artifacts in `dist/` must not be committed.
+## License
 
-## Installation Notes
-
-The DMG contains:
-
-- `CmdTabUltra.app`
-- an `Applications` shortcut for drag-and-drop installation
-
-The app writes `com.jint233.cmdtabultra.plist` to `~/Library/LaunchAgents/` when the service is started from the control panel.
-
-If you replace the app without a stable signing identity, macOS may require Accessibility permission again. To preserve permission across upgrades, keep these stable:
-
-- bundle identifier: `com.jint233.cmdtabultra`
-- app location selected by the user
-- code-signing identity
-
-To build with signing:
-
-```sh
-make pkg SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)"
-```
-
-## Debugging
-
-Tail the agent log:
-
-```sh
-tail -f /tmp/CmdTabUltra.log
-```
-
-Inspect LaunchAgent status:
-
-```sh
-launchctl print "gui/$(id -u)/com.jint233.cmdtabultra"
-launchctl print-disabled "gui/$(id -u)" | grep com.jint233.cmdtabultra
-```
-
-Inspect the ready marker:
-
-```sh
-cat "$HOME/Library/Application Support/CmdTabUltra/agent-ready"
-```
-
-The PID in `agent-ready` should match the PID reported by `launchctl print`.
-
-## Release Process
-
-1. Update the `Version` key in `com.jint233.cmdtabultra.plist`.
-2. Verify `make lint` and `make universal`.
-3. Commit and push the version bump to `main`.
-4. Run `scripts/release.sh` to push the release tag.
-
-The release script validates that the local `main` branch matches `origin/main`, creates a signed Git tag, and pushes it. GitHub Actions builds the ZIP, DMG, and PKG assets and publishes the release automatically when a `v*` tag is pushed.
-
-## Current Scope
-
-The control panel currently uses Chinese UI copy. Repository documentation and contribution guidance are standardized in English so the codebase remains accessible to broader GitHub collaboration.
+Apache License 2.0. See [LICENSE](./LICENSE).

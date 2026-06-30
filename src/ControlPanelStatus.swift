@@ -36,21 +36,24 @@ extension ControlPanelDelegate {
             return
         }
 
-        startButton.title =
-            status.accessibilityGranted
-            ? localized("control.start")
-            : (startButton.title == localized("control.restart")
-                ? localized("control.restart") : localized("control.authorize"))
-
         if !status.accessibilityGranted {
+            if primaryAction != .restart {
+                primaryAction = .authorize
+            }
+            applyPrimaryActionTitle()
+            applyPrimaryButtonStyle(isServiceRunning: false)
             statusDot.stringValue = "●"
             statusDot.textColor = .systemOrange
             statusValue.stringValue =
                 status.running
                 ? localized("state.waitingAuthorization") : localized("state.unauthorized")
             statusValue.textColor = .systemOrange
+            statusDescription.stringValue =
+                status.running
+                ? localized("description.waitingAuthorization")
+                : localized("description.unauthorized")
 
-            if startButton.title == localized("control.restart") {
+            if primaryAction == .restart {
                 if !isMessageProtected {
                     messageValue.stringValue = localized("message.allowAccessibilityThenRestart")
                 }
@@ -65,11 +68,15 @@ extension ControlPanelDelegate {
             startButton.isEnabled = true
             stopButton.isEnabled = false
         } else if status.running && status.agentReady {
+            primaryAction = .start
+            applyPrimaryActionTitle()
+            applyPrimaryButtonStyle(isServiceRunning: true)
             statusDot.stringValue = "●"
             statusDot.textColor = .systemGreen
             statusValue.stringValue =
                 hasJustStarted ? localized("state.started") : localized("state.running")
             statusValue.textColor = .systemGreen
+            statusDescription.stringValue = localized("description.running")
             if !isMessageProtected
                 && (messageValue.stringValue == localized("state.started")
                     || messageValue.stringValue == localized("message.openedAccessibility"))
@@ -80,10 +87,14 @@ extension ControlPanelDelegate {
             startButton.isEnabled = false
             stopButton.isEnabled = true
         } else if status.running {
+            primaryAction = .start
+            applyPrimaryActionTitle()
+            applyPrimaryButtonStyle(isServiceRunning: true)
             statusDot.stringValue = "●"
             statusDot.textColor = .systemYellow
             statusValue.stringValue = localized("state.readying")
             statusValue.textColor = .systemYellow
+            statusDescription.stringValue = localized("description.readying")
             if !isMessageProtected
                 && (messageValue.stringValue.isEmpty
                     || messageValue.stringValue == localized("state.started"))
@@ -94,10 +105,14 @@ extension ControlPanelDelegate {
             startButton.isEnabled = false
             stopButton.isEnabled = true
         } else {
+            primaryAction = .start
+            applyPrimaryActionTitle()
+            applyPrimaryButtonStyle(isServiceRunning: false)
             statusDot.stringValue = "●"
             statusDot.textColor = .systemRed
             statusValue.stringValue = localized("state.stopped")
             statusValue.textColor = .systemRed
+            statusDescription.stringValue = localized("description.stopped")
             if !isMessageProtected
                 && messageValue.stringValue == localized("message.openedAccessibility")
             {

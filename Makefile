@@ -3,6 +3,7 @@ SWIFT    := swiftc
 FLAGS    := -O -framework Cocoa -framework ApplicationServices
 SOURCES  := $(wildcard src/*.swift)
 DIST     := dist
+VERSION_FILE := VERSION
 SIGN_IDENTITY ?= -
 INSTALLER_SIGN_IDENTITY ?=
 RESET_ACCESSIBILITY ?= 1
@@ -50,8 +51,9 @@ PLIST_LABEL   := com.jint233.cmdtabultra
 PLIST_SRC     := $(PLIST_LABEL).plist
 PLIST_DST     := $(HOME)/Library/LaunchAgents/$(PLIST_SRC)
 LAUNCHD_UID   := gui/$$(id -u)
-VERSION       := $(shell /usr/libexec/PlistBuddy -c "Print :Version" $(PLIST_SRC))
+VERSION       := $(strip $(shell cat $(VERSION_FILE)))
 ICON_SRC      := resources/$(APP).icns
+ICON_MASTER   := resources/$(APP).png
 PKG_ID        := com.jint233.cmdtabultra.pkg
 PKG_ROOT      := $(DIST)/pkgroot
 PKG_SCRIPTS   := $(DIST)/pkg-scripts
@@ -76,8 +78,24 @@ DIST_ICON     := $(DIST_RESOURCES)/$(APP).icns
 APP_BUNDLE    := $(HOME)/Applications/$(APP).app
 INSTALL_BIN   := $(APP_BUNDLE)/Contents/MacOS/$(APP)
 
-icon:
-	swift scripts/make_command_arrow_icon.swift
+icon: $(ICON_SRC)
+
+$(ICON_SRC): $(ICON_MASTER) | $(DIST)
+	rm -rf "$(DIST)/$(APP).iconset"
+	mkdir -p "$(DIST)/$(APP).iconset"
+	sips -z 16 16 "$(ICON_MASTER)" --out "$(DIST)/$(APP).iconset/icon_16x16.png" >/dev/null
+	sips -z 32 32 "$(ICON_MASTER)" --out "$(DIST)/$(APP).iconset/icon_16x16@2x.png" >/dev/null
+	sips -z 32 32 "$(ICON_MASTER)" --out "$(DIST)/$(APP).iconset/icon_32x32.png" >/dev/null
+	sips -z 64 64 "$(ICON_MASTER)" --out "$(DIST)/$(APP).iconset/icon_32x32@2x.png" >/dev/null
+	sips -z 128 128 "$(ICON_MASTER)" --out "$(DIST)/$(APP).iconset/icon_128x128.png" >/dev/null
+	sips -z 256 256 "$(ICON_MASTER)" --out "$(DIST)/$(APP).iconset/icon_128x128@2x.png" >/dev/null
+	sips -z 256 256 "$(ICON_MASTER)" --out "$(DIST)/$(APP).iconset/icon_256x256.png" >/dev/null
+	sips -z 512 512 "$(ICON_MASTER)" --out "$(DIST)/$(APP).iconset/icon_256x256@2x.png" >/dev/null
+	sips -z 512 512 "$(ICON_MASTER)" --out "$(DIST)/$(APP).iconset/icon_512x512.png" >/dev/null
+	sips -z 1024 1024 "$(ICON_MASTER)" --out "$(DIST)/$(APP).iconset/icon_512x512@2x.png" >/dev/null
+	iconutil -c icns "$(DIST)/$(APP).iconset" -o "$(ICON_SRC)"
+	rm -rf "$(DIST)/$(APP).iconset"
+	@echo "Generated $(ICON_SRC) from $(ICON_MASTER)"
 
 # Formatting
 format:
@@ -198,7 +216,10 @@ install: bundle
 	cp -R "$(DIST_APP)" "$(APP_BUNDLE)"
 	@# install LaunchAgent plist
 	mkdir -p "$$(dirname "$(PLIST_DST)")"
-	sed "s|__BINARY__|$(INSTALL_BIN)|g" "$(PLIST_SRC)" > "$(PLIST_DST)"
+	sed \
+		-e "s|__BINARY__|$(INSTALL_BIN)|g" \
+		-e "s|__VERSION__|$(VERSION)|g" \
+		"$(PLIST_SRC)" > "$(PLIST_DST)"
 	launchctl enable "$(LAUNCHD_UID)/$(PLIST_LABEL)"
 	open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility" 2>/dev/null || true
 	open "$(APP_BUNDLE)" 2>/dev/null || true

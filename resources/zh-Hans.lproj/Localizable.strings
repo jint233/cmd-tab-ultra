@@ -1,4 +1,7 @@
-"app.subtitle" = "Cmd-Tab 窗口自动恢复工具";
+"language.label" = "语言";
+"language.system" = "跟随系统";
+"language.zhHans" = "中文";
+"language.en" = "English";
 
 "control.start" = "启动";
 "control.stop" = "停止";
@@ -19,6 +22,13 @@
 "state.readying" = "服务就绪中";
 "state.stopped" = "已停止";
 "state.stopping" = "停止中";
+
+"description.waitingAuthorization" = "后台服务已启动，但还需要辅助功能权限才能恢复窗口。";
+"description.unauthorized" = "请先授权辅助功能权限，CmdTabUltra 才能监听 Cmd-Tab 切换。";
+"description.running" = "后台服务正在监听应用切换，并会在需要时恢复窗口。";
+"description.readying" = "后台服务正在启动监听模块，通常会在几秒内完成。";
+"description.stopped" = "后台服务未运行，窗口恢复功能当前不会生效。";
+"description.stopping" = "正在停止后台服务，请稍候。";
 
 "message.refreshing" = "正在刷新…";
 "message.allowAccessibilityThenRestart" = "请在辅助功能设置中允许该应用。授权完成后会提示重启软件。";

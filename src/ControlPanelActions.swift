@@ -66,7 +66,7 @@ extension ControlPanelDelegate {
 
         let status = currentServiceStatus()
         if !status.accessibilityGranted {
-            if startButton.title == localized("control.restart") {
+            if primaryAction == .restart {
                 let refreshedStatus = currentServiceStatus()
                 if refreshedStatus.accessibilityGranted {
                     promptRestartAfterAuthorization()
@@ -89,7 +89,8 @@ extension ControlPanelDelegate {
             let opts =
                 [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
             _ = AXIsProcessTrustedWithOptions(opts)
-            startButton.title = localized("control.restart")
+            primaryAction = .restart
+            applyPrimaryActionTitle()
             return
         }
 
@@ -101,6 +102,8 @@ extension ControlPanelDelegate {
         statusDot.textColor = .systemYellow
         statusValue.stringValue = localized("state.readying")
         statusValue.textColor = .systemYellow
+        statusDescription.stringValue = localized("description.readying")
+        applyPrimaryButtonStyle(isServiceRunning: true)
 
         DispatchQueue.global(qos: .userInitiated).async {
             let msg = startService()
@@ -135,6 +138,8 @@ extension ControlPanelDelegate {
         statusDot.textColor = .systemYellow
         statusValue.stringValue = localized("state.stopping")
         statusValue.textColor = .systemYellow
+        statusDescription.stringValue = localized("description.stopping")
+        applyPrimaryButtonStyle(isServiceRunning: false)
 
         DispatchQueue.global(qos: .userInitiated).async {
             let msg = stopService()

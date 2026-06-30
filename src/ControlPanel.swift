@@ -1,9 +1,22 @@
 import Cocoa
 
+enum ControlPanelPrimaryAction {
+    case start
+    case authorize
+    case restart
+}
+
 final class ControlPanelDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow!
+    let languageLabel = NSTextField(labelWithString: "")
+    let languagePopup = NSPopUpButton()
     let statusDot = NSTextField(labelWithString: "")
     let statusValue = NSTextField(labelWithString: "")
+    let statusDescription = NSTextField(labelWithString: "")
+    let versionLabel = NSTextField(labelWithString: "")
+    let pidLabel = NSTextField(labelWithString: "")
+    let duplicateLabel = NSTextField(labelWithString: "")
+    let autoStartLabel = NSTextField(labelWithString: "")
     let versionValue = NSTextField(labelWithString: "")
     let pidValue = NSTextField(labelWithString: "")
     let duplicateValue = NSTextField(labelWithString: "")
@@ -19,16 +32,14 @@ final class ControlPanelDelegate: NSObject, NSApplicationDelegate {
     var authorizationFlowStarted = false
     var restartPromptShown = false
     var protectedMessageUntil: Date?
+    var primaryAction: ControlPanelPrimaryAction = .start
 
     // MARK: NSApplicationDelegate
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        startButton.title = localized("control.start")
-        stopButton.title = localized("control.stop")
-        refreshButton.title = localized("control.refresh")
-
         NSApp.setActivationPolicy(.regular)
         buildWindow()
+        applyLocalizedText()
         refresh()
         window.center()
         window.makeKeyAndOrderFront(nil)

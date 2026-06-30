@@ -3,7 +3,7 @@ set -euo pipefail
 
 remote="${REMOTE:-origin}"
 branch="${BRANCH:-main}"
-plist="com.jint233.cmdtabultra.plist"
+version_file="VERSION"
 
 require_command() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -14,9 +14,17 @@ require_command() {
 
 require_command git
 require_command gh
-require_command /usr/libexec/PlistBuddy
 
-version=$(/usr/libexec/PlistBuddy -c "Print :Version" "$plist")
+if [[ ! -f "$version_file" ]]; then
+  echo "Missing $version_file" >&2
+  exit 1
+fi
+
+version=$(tr -d '[:space:]' < "$version_file")
+if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "Invalid version in $version_file: $version" >&2
+  exit 1
+fi
 tag="v$version"
 
 if ! gh auth status >/dev/null 2>&1; then
