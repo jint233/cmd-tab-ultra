@@ -16,9 +16,7 @@
 "tab.exclusions" = "Exclusions";
 "tab.logs" = "Logs";
 
-"status.version" = "Version";
 "status.autoStart" = "Start at Login";
-"status.none" = "None";
 
 "policy.restoreMinimized" = "Restore Minimized Windows";
 "policy.reopenWindows" = "Reopen Apps Without Windows";
@@ -27,7 +25,6 @@
 "excluded.title" = "Excluded Apps";
 "excluded.chooseTitle" = "Choose an app to exclude";
 
-"recent.title" = "Recent Actions";
 "recent.empty" = "No records";
 "recent.action.skipped" = "Skipped";
 "recent.action.unminimized" = "Restored minimized window";
@@ -43,8 +40,6 @@
 "state.stopped" = "Stopped";
 "state.stopping" = "Stopping";
 
-"description.waitingAuthorization" = "Service started. Waiting for Accessibility permission.";
-"description.unauthorized" = "Accessibility permission is required to enable service.";
 "description.running" = "Active. Restoring minimized windows.";
 "description.readying" = "Service starting. Connecting listener...";
 "description.stopped" = "Service stopped.";

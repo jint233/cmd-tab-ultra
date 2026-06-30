@@ -5,6 +5,7 @@ func removeDuplicateUserInstallIfNeeded() {
     let userApplicationsURL = URL(fileURLWithPath: userApplicationsInstallPath).standardizedFileURL
     guard currentBundleURL.path != userApplicationsURL.path else { return }
     guard FileManager.default.fileExists(atPath: userApplicationsURL.path) else { return }
+    guard Bundle(url: userApplicationsURL)?.bundleIdentifier == serviceLabel else { return }
 
     try? FileManager.default.removeItem(at: userApplicationsURL)
 }

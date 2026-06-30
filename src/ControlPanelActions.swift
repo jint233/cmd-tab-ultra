@@ -18,13 +18,14 @@ extension ControlPanelDelegate {
 
     func relaunchApplication() {
         let appPath = Bundle.main.bundleURL.path
+        guard let executableURL = Bundle.main.executableURL else {
+            NSApp.terminate(nil)
+            return
+        }
+
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/bin/sh")
-        process.environment = ["CMDTABULTRA_APP_PATH": appPath]
-        process.arguments = [
-            "-c",
-            "sleep 0.5; /usr/bin/open \"$CMDTABULTRA_APP_PATH\"",
-        ]
+        process.executableURL = executableURL
+        process.arguments = [relaunchArgument, appPath]
 
         do {
             try process.run()
@@ -49,7 +50,7 @@ extension ControlPanelDelegate {
     }
 
     func setMessage(_ text: String, protectingFor seconds: TimeInterval = 0) {
-        messageValue.stringValue = text
+        messageText = text
         protectedMessageUntil = seconds > 0 ? Date().addingTimeInterval(seconds) : nil
         if !text.isEmpty {
             statusDescription.stringValue = text
@@ -105,19 +106,31 @@ extension ControlPanelDelegate {
     }
 
     @objc func startClicked() {
-        removeDuplicateUserInstallIfNeeded()
+        DispatchQueue.global(qos: .userInitiated).async {
+            removeDuplicateUserInstallIfNeeded()
+            let status = currentServiceStatus()
+            DispatchQueue.main.async { [weak self] in
+                self?.handleStartClick(with: status)
+            }
+        }
+    }
 
-        let status = currentServiceStatus()
+    private func handleStartClick(with status: ServiceStatus) {
         if !status.accessibilityGranted {
             if primaryAction == .restart {
-                let refreshedStatus = currentServiceStatus()
-                if refreshedStatus.accessibilityGranted {
-                    promptRestartAfterAuthorization()
-                } else {
-                    prepareAccessibilityAuthorization(
-                        message: localized("message.allowAccessibilityFirst"),
-                        setRestartAction: true
-                    )
+                DispatchQueue.global(qos: .userInitiated).async {
+                    let refreshedStatus = currentServiceStatus()
+                    DispatchQueue.main.async { [weak self] in
+                        guard let self else { return }
+                        if refreshedStatus.accessibilityGranted {
+                            self.promptRestartAfterAuthorization()
+                        } else {
+                            self.prepareAccessibilityAuthorization(
+                                message: localized("message.allowAccessibilityFirst"),
+                                setRestartAction: true
+                            )
+                        }
+                    }
                 }
                 return
             }
@@ -130,10 +143,13 @@ extension ControlPanelDelegate {
             return
         }
 
+        startServiceFromControlPanel()
+    }
+
+    private func startServiceFromControlPanel() {
         isStarting = true
         setControlsEnabled(false)
         setMessage(localized("message.starting"))
-
         statusDot.stringValue = "●"
         statusDot.textColor = .systemYellow
         statusValue.stringValue = localized("state.readying")

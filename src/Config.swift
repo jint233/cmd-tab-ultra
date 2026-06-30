@@ -4,6 +4,7 @@ let appName = "CmdTabUltra"
 let appDisplayName = "Cmd-Tab-Ultra"
 let serviceLabel = "com.jint233.cmdtabultra"
 let agentArgument = "--agent"
+let relaunchArgument = "--relaunch"
 let defaultVersion = "0.0.0"
 
 let tabKeyCode: Int64 = 48
@@ -42,11 +43,8 @@ struct ServiceStatus {
     let loaded: Bool
     let running: Bool
     let pid: Int?
-    let runs: Int?
-    let program: String?
     let version: String?
     let autoStartEnabled: Bool
-    let duplicatePids: [Int]
     let accessibilityGranted: Bool
     let agentReady: Bool
 }

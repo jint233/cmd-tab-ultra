@@ -6,6 +6,15 @@ struct CmdTabUltraApp {
     static func main() {
         // Disable stdout buffering so log output reaches the file immediately.
         setbuf(stdout, nil)
+
+        if let relaunchIndex = CommandLine.arguments.firstIndex(of: relaunchArgument),
+            CommandLine.arguments.indices.contains(relaunchIndex + 1)
+        {
+            Thread.sleep(forTimeInterval: 0.5)
+            _ = runCommand("/usr/bin/open", [CommandLine.arguments[relaunchIndex + 1]])
+            return
+        }
+
         // Register app activation observer (shared by agent mode).
         NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification,

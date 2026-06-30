@@ -1,25 +1,5 @@
 import Cocoa
 
-private enum ControlPanelLayout {
-    static let cardMinWidth: CGFloat = 440
-    static let cardHorizontalInset: CGFloat = 16
-    static let cardVerticalInset: CGFloat = 12
-    static let cornerRadius: CGFloat = 12
-    static let controlCornerRadius: CGFloat = 8
-    static let listSelectionCornerRadius: CGFloat = 6
-    static let selectionVerticalInset: CGFloat = 3
-    static let selectionHorizontalInset: CGFloat = 0
-    static let selectionTextHorizontalInset: CGFloat = 14
-    static let pageCardHeight: CGFloat = 252
-    static let statusSectionMinHeight: CGFloat = 42
-    static let settingsBottomSpacerMaxHeight: CGFloat = 8
-    static let settingsRowSpacing: CGFloat = 15
-    static let buttonHeight: CGFloat = 28
-    static let primaryButtonMinWidth: CGFloat = 78
-    static let utilityButtonMinWidth: CGFloat = 72
-    static let cardButtonSpacing: CGFloat = 8
-}
-
 extension ControlPanelDelegate {
     func buildWindow() {
         window = NSWindow(
@@ -77,9 +57,9 @@ extension ControlPanelDelegate {
         titleStack.alignment = .firstBaseline
         titleStack.translatesAutoresizingMaskIntoConstraints = false
 
-        tabSegmentedControl.segmentCount = 3
+        tabSegmentedControl.segmentCount = ControlPanelTab.allCases.count
         tabSegmentedControl.trackingMode = .selectOne
-        tabSegmentedControl.selectedSegment = 0
+        tabSegmentedControl.selectedSegment = ControlPanelTab.settings.rawValue
         tabSegmentedControl.target = self
         tabSegmentedControl.action = #selector(tabSegmentChanged)
         tabSegmentedControl.translatesAutoresizingMaskIntoConstraints = false
@@ -88,9 +68,9 @@ extension ControlPanelDelegate {
         tabView.tabViewType = .noTabsNoBorder
         tabView.drawsBackground = false
         tabView.translatesAutoresizingMaskIntoConstraints = false
-        tabView.addTabViewItem(makeTabItem(identifier: "settings", view: settingsView))
-        tabView.addTabViewItem(makeTabItem(identifier: "exclusions", view: exclusionsView))
-        tabView.addTabViewItem(makeTabItem(identifier: "logs", view: logsView))
+        tabView.addTabViewItem(makeTabItem(tab: .settings, view: settingsView))
+        tabView.addTabViewItem(makeTabItem(tab: .exclusions, view: exclusionsView))
+        tabView.addTabViewItem(makeTabItem(tab: .logs, view: logsView))
 
         let stack = NSStackView(views: [titleStack, tabSegmentedControl, tabView])
         stack.orientation = .vertical
@@ -115,7 +95,6 @@ extension ControlPanelDelegate {
 
     func applyLocalizedText() {
         updateTabLabels()
-        versionLabel.stringValue = localized("status.version")
         autoStartLabel.stringValue = localized("status.autoStart")
         restoreMinimizedLabel.stringValue = localized("policy.restoreMinimized")
         reopenWindowsLabel.stringValue = localized("policy.reopenWindows")
@@ -124,7 +103,6 @@ extension ControlPanelDelegate {
         chooseExcludedAppButton.title = localized("control.chooseApp")
         removeExcludedButton.title = localized("control.remove")
         clearLogsButton.title = localized("control.clear")
-        recentActionsLabel.stringValue = localized("recent.title")
         stopButton.title = localized("control.stop")
         refreshButton.title = localized("control.refresh")
         languageLabel.stringValue = localized("language.label")
@@ -164,10 +142,6 @@ extension ControlPanelDelegate {
         refresh()
     }
 
-    func updateExcludedBundleIDPopup() {
-        updateExcludedBundleIDList()
-    }
-
     func updateExcludedBundleIDList(selecting bundleIDToSelect: String? = nil) {
         let bundleIDs = AppPreferences.excludedBundleIDs.sorted()
         let previousSelection =
@@ -193,7 +167,7 @@ extension ControlPanelDelegate {
         restoreMinimizedSwitch.state = policy.restoreMinimizedWindows ? .on : .off
         reopenWindowsSwitch.state = policy.reopenAppsWithoutWindows ? .on : .off
         commandNFallbackSwitch.state = policy.useCommandNFallback ? .on : .off
-        updateExcludedBundleIDPopup()
+        updateExcludedBundleIDList()
     }
 
     private static let timeFormatter: DateFormatter = {
@@ -215,24 +189,17 @@ extension ControlPanelDelegate {
     }
 
     private func configureButtons() {
-        startButton.bezelStyle = .rounded
-        stopButton.bezelStyle = .rounded
-        refreshButton.bezelStyle = .rounded
+        configureButton(
+            startButton, action: #selector(startClicked),
+            minWidth: ControlPanelLayout.primaryButtonMinWidth)
+        configureButton(
+            stopButton, action: #selector(stopClicked),
+            minWidth: ControlPanelLayout.primaryButtonMinWidth)
+        configureButton(
+            refreshButton, action: #selector(refreshClicked),
+            minWidth: ControlPanelLayout.utilityButtonMinWidth)
         if #available(macOS 10.12, *) {
             startButton.bezelColor = .controlAccentColor
-        }
-        startButton.target = self
-        startButton.action = #selector(startClicked)
-        stopButton.target = self
-        stopButton.action = #selector(stopClicked)
-        refreshButton.target = self
-        refreshButton.action = #selector(refreshClicked)
-
-        startButton.widthAnchor.constraint(greaterThanOrEqualToConstant: ControlPanelLayout.primaryButtonMinWidth).isActive = true
-        stopButton.widthAnchor.constraint(greaterThanOrEqualToConstant: ControlPanelLayout.primaryButtonMinWidth).isActive = true
-        refreshButton.widthAnchor.constraint(greaterThanOrEqualToConstant: ControlPanelLayout.utilityButtonMinWidth).isActive = true
-        for button in [startButton, stopButton, refreshButton] {
-            button.heightAnchor.constraint(equalToConstant: ControlPanelLayout.buttonHeight).isActive = true
         }
     }
 
@@ -268,8 +235,7 @@ extension ControlPanelDelegate {
         autoStartSwitch.action = #selector(toggleAutoStart)
         autoStartSwitch.controlSize = .small
 
-        languageLabel.font = .systemFont(ofSize: 13)
-        languageLabel.textColor = .labelColor
+        configureRowLabel(languageLabel)
         languagePopup.target = self
         languagePopup.action = #selector(languageChanged)
         languagePopup.controlSize = .small
@@ -283,9 +249,11 @@ extension ControlPanelDelegate {
         }
 
         let autoStartRow = createRow(label: autoStartLabel, value: autoStartSwitch)
-        let restoreMinimizedRow = createRow(label: restoreMinimizedLabel, value: restoreMinimizedSwitch)
+        let restoreMinimizedRow = createRow(
+            label: restoreMinimizedLabel, value: restoreMinimizedSwitch)
         let reopenWindowsRow = createRow(label: reopenWindowsLabel, value: reopenWindowsSwitch)
-        let commandNFallbackRow = createRow(label: commandNFallbackLabel, value: commandNFallbackSwitch)
+        let commandNFallbackRow = createRow(
+            label: commandNFallbackLabel, value: commandNFallbackSwitch)
         let languageRow = createRow(label: languageLabel, value: languagePopup)
 
         let settingsSection = createRowsStack(views: [
@@ -293,7 +261,7 @@ extension ControlPanelDelegate {
             restoreMinimizedRow,
             reopenWindowsRow,
             commandNFallbackRow,
-            languageRow
+            languageRow,
         ])
         settingsSection.spacing = ControlPanelLayout.settingsRowSpacing
         settingsSection.setContentHuggingPriority(.required, for: .vertical)
@@ -323,12 +291,14 @@ extension ControlPanelDelegate {
         NSLayoutConstraint.activate([
             separator.widthAnchor.constraint(equalTo: overallStack.widthAnchor),
             statusSection.widthAnchor.constraint(equalTo: overallStack.widthAnchor),
-            statusSection.heightAnchor.constraint(greaterThanOrEqualToConstant: ControlPanelLayout.statusSectionMinHeight),
+            statusSection.heightAnchor.constraint(
+                greaterThanOrEqualToConstant: ControlPanelLayout.statusSectionMinHeight),
             statusTitleRow.widthAnchor.constraint(lessThanOrEqualTo: statusSection.widthAnchor),
             statusDescription.widthAnchor.constraint(equalTo: statusSection.widthAnchor),
             settingsSection.widthAnchor.constraint(equalTo: overallStack.widthAnchor),
             cardBottomSpacer.widthAnchor.constraint(equalTo: overallStack.widthAnchor),
-            cardBottomSpacer.heightAnchor.constraint(lessThanOrEqualToConstant: ControlPanelLayout.settingsBottomSpacerMaxHeight),
+            cardBottomSpacer.heightAnchor.constraint(
+                lessThanOrEqualToConstant: ControlPanelLayout.settingsBottomSpacerMaxHeight),
         ])
 
         let card = makeCard(containing: overallStack)
@@ -357,15 +327,8 @@ extension ControlPanelDelegate {
     }
 
     private func makeExcludedAppsCard() -> NSView {
-        chooseExcludedAppButton.bezelStyle = .rounded
-        removeExcludedButton.bezelStyle = .rounded
-        chooseExcludedAppButton.target = self
-        chooseExcludedAppButton.action = #selector(chooseExcludedApp)
-        removeExcludedButton.target = self
-        removeExcludedButton.action = #selector(removeExcludedBundleID)
-        for button in [chooseExcludedAppButton, removeExcludedButton] {
-            button.heightAnchor.constraint(equalToConstant: ControlPanelLayout.buttonHeight).isActive = true
-        }
+        configureButton(chooseExcludedAppButton, action: #selector(chooseExcludedApp))
+        configureButton(removeExcludedButton, action: #selector(removeExcludedBundleID))
 
         configureExcludedAppsTable()
 
@@ -373,7 +336,7 @@ extension ControlPanelDelegate {
         excludedBundleIDScrollView.setContentHuggingPriority(.defaultLow, for: .vertical)
 
         let rows = createRowsStack(views: [excludedBundleIDScrollView])
-        let card = makeCardFlush(containing: rows)
+        let card = makeCard(containing: rows)
 
         let appRow = NSStackView(views: [chooseExcludedAppButton, removeExcludedButton])
         appRow.orientation = .horizontal
@@ -402,14 +365,11 @@ extension ControlPanelDelegate {
         recentActionsValue.setContentHuggingPriority(.defaultLow, for: .vertical)
 
         let rows = createRowsStack(views: [recentActionsValue])
-        let card = makeCardFlush(containing: rows)
+        let card = makeCard(containing: rows)
         card.setContentHuggingPriority(.defaultHigh, for: .vertical)
 
         // Clear button (outside the card)
-        clearLogsButton.bezelStyle = .rounded
-        clearLogsButton.target = self
-        clearLogsButton.action = #selector(clearLogsClicked)
-        clearLogsButton.heightAnchor.constraint(equalToConstant: ControlPanelLayout.buttonHeight).isActive = true
+        configureButton(clearLogsButton, action: #selector(clearLogsClicked))
 
         let logButtonsRow = NSStackView(views: [clearLogsButton])
         logButtonsRow.orientation = .horizontal
@@ -428,8 +388,8 @@ extension ControlPanelDelegate {
         return logsStack
     }
 
-    private func makeTabItem(identifier: String, view: NSView) -> NSTabViewItem {
-        let item = NSTabViewItem(identifier: identifier)
+    private func makeTabItem(tab: ControlPanelTab, view: NSView) -> NSTabViewItem {
+        let item = NSTabViewItem(identifier: tab.identifier)
         let container = NSView()
         container.autoresizingMask = [.width, .height]
         container.addSubview(view)
@@ -451,13 +411,12 @@ extension ControlPanelDelegate {
     }
 
     private func updateTabLabels() {
-        guard tabView.tabViewItems.count >= 3 else { return }
-        tabView.tabViewItems[0].label = localized("tab.settings")
-        tabView.tabViewItems[1].label = localized("tab.exclusions")
-        tabView.tabViewItems[2].label = localized("tab.logs")
-        tabSegmentedControl.setLabel(localized("tab.settings"), forSegment: 0)
-        tabSegmentedControl.setLabel(localized("tab.exclusions"), forSegment: 1)
-        tabSegmentedControl.setLabel(localized("tab.logs"), forSegment: 2)
+        guard tabView.tabViewItems.count >= ControlPanelTab.allCases.count else { return }
+        for tab in ControlPanelTab.allCases {
+            let title = localized(tab.localizationKey)
+            tabView.tabViewItems[tab.rawValue].label = title
+            tabSegmentedControl.setLabel(title, forSegment: tab.rawValue)
+        }
     }
 
     private func updateLanguagePopup() {
@@ -519,16 +478,14 @@ extension ControlPanelDelegate {
         card.addSubview(view)
         view.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            view.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: ControlPanelLayout.cardHorizontalInset),
-            view.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -ControlPanelLayout.cardHorizontalInset),
+            view.leadingAnchor.constraint(
+                equalTo: card.leadingAnchor, constant: ControlPanelLayout.cardHorizontalInset),
+            view.trailingAnchor.constraint(
+                equalTo: card.trailingAnchor, constant: -ControlPanelLayout.cardHorizontalInset),
             view.topAnchor.constraint(equalTo: card.topAnchor, constant: top),
             view.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -bottom),
         ])
         return card
-    }
-
-    private func makeCardFlush(containing view: NSView) -> NSBox {
-        makeCard(containing: view)
     }
 
     private func makeCard() -> NSBox {
@@ -539,7 +496,8 @@ extension ControlPanelDelegate {
         card.borderColor = NSColor.separatorColor.withAlphaComponent(0.2)
         card.fillColor = NSColor.controlBackgroundColor.withAlphaComponent(0.6)
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.widthAnchor.constraint(greaterThanOrEqualToConstant: ControlPanelLayout.cardMinWidth).isActive = true
+        card.widthAnchor.constraint(greaterThanOrEqualToConstant: ControlPanelLayout.cardMinWidth)
+            .isActive = true
         return card
     }
 
@@ -571,9 +529,7 @@ extension ControlPanelDelegate {
     }
 
     private func createRow(label: NSTextField, value: NSView) -> NSStackView {
-        label.font = .systemFont(ofSize: 13)
-        label.textColor = .labelColor
-        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        configureRowLabel(label)
 
         let spacer = NSView()
         spacer.translatesAutoresizingMaskIntoConstraints = false
@@ -582,9 +538,30 @@ extension ControlPanelDelegate {
         let row = NSStackView(views: [label, spacer, value])
         row.orientation = .horizontal
         row.alignment = .centerY
-        row.spacing = 8
+        row.spacing = ControlPanelLayout.rowSpacing
         row.translatesAutoresizingMaskIntoConstraints = false
         return row
+    }
+
+    private func configureButton(
+        _ button: NSButton,
+        action: Selector,
+        minWidth: CGFloat? = nil
+    ) {
+        button.bezelStyle = .rounded
+        button.target = self
+        button.action = action
+        button.heightAnchor.constraint(equalToConstant: ControlPanelLayout.buttonHeight).isActive =
+            true
+        if let minWidth {
+            button.widthAnchor.constraint(greaterThanOrEqualToConstant: minWidth).isActive = true
+        }
+    }
+
+    private func configureRowLabel(_ label: NSTextField) {
+        label.font = .systemFont(ofSize: 13)
+        label.textColor = .labelColor
+        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     }
 
     private func createRowsStack(views: [NSView]) -> NSStackView {
@@ -642,7 +619,8 @@ extension ControlPanelDelegate: NSTableViewDataSource, NSTableViewDelegate {
 
         let bundleID = excludedBundleIDsSnapshot[row]
         let identifier = NSUserInterfaceItemIdentifier("ExcludedBundleIDCell")
-        let cellView = tableView.makeView(withIdentifier: identifier, owner: self) as? NSTableCellView
+        let cellView =
+            tableView.makeView(withIdentifier: identifier, owner: self) as? NSTableCellView
             ?? NSTableCellView()
         cellView.identifier = identifier
 
@@ -689,115 +667,5 @@ extension ControlPanelDelegate: NSTableViewDataSource, NSTableViewDelegate {
         rowViewForRow row: Int
     ) -> NSTableRowView? {
         RoundedSelectionTableRowView()
-    }
-}
-
-private final class RoundedSelectionTableRowView: NSTableRowView {
-    override func drawSelection(in dirtyRect: NSRect) {
-        guard selectionHighlightStyle != .none else { return }
-
-        let selectionRect = bounds.insetBy(
-            dx: ControlPanelLayout.selectionHorizontalInset,
-            dy: ControlPanelLayout.selectionVerticalInset
-        )
-        NSColor.controlAccentColor.setFill()
-        NSBezierPath(
-            roundedRect: selectionRect,
-            xRadius: ControlPanelLayout.listSelectionCornerRadius,
-            yRadius: ControlPanelLayout.listSelectionCornerRadius
-        ).fill()
-    }
-}
-
-final class RoundedTabSegmentedControl: NSSegmentedControl {
-    override var selectedSegment: Int {
-        get { super.selectedSegment }
-        set {
-            super.selectedSegment = newValue
-            needsDisplay = true
-        }
-    }
-
-    override func setLabel(_ label: String, forSegment segment: Int) {
-        super.setLabel(label, forSegment: segment)
-        needsDisplay = true
-    }
-
-    override func draw(_ dirtyRect: NSRect) {
-        guard segmentCount > 0 else { return }
-
-        let radius = ControlPanelLayout.controlCornerRadius
-        let backgroundRect = bounds
-        NSColor.controlColor.withAlphaComponent(0.55).setFill()
-        NSBezierPath(
-            roundedRect: backgroundRect,
-            xRadius: radius,
-            yRadius: radius
-        ).fill()
-
-        let segmentWidth = bounds.width / CGFloat(segmentCount)
-        if selectedSegment >= 0 && selectedSegment < segmentCount {
-            let selectedRect = NSRect(
-                x: bounds.minX + CGFloat(selectedSegment) * segmentWidth,
-                y: bounds.minY,
-                width: segmentWidth,
-                height: bounds.height
-            )
-            NSColor.controlAccentColor.setFill()
-            NSBezierPath(
-                roundedRect: selectedRect,
-                xRadius: radius,
-                yRadius: radius
-            ).fill()
-        }
-
-        drawSeparators(segmentWidth: segmentWidth)
-        drawLabels(segmentWidth: segmentWidth)
-    }
-
-    private func drawSeparators(segmentWidth: CGFloat) {
-        guard segmentCount > 1 else { return }
-
-        NSColor.separatorColor.withAlphaComponent(0.45).setStroke()
-        for segment in 1..<segmentCount {
-            if segment == selectedSegment || segment - 1 == selectedSegment {
-                continue
-            }
-            let x = bounds.minX + CGFloat(segment) * segmentWidth
-            let path = NSBezierPath()
-            path.lineWidth = 1
-            path.move(to: NSPoint(x: x, y: bounds.minY + 8))
-            path.line(to: NSPoint(x: x, y: bounds.maxY - 8))
-            path.stroke()
-        }
-    }
-
-    private func drawLabels(segmentWidth: CGFloat) {
-        let paragraph = NSMutableParagraphStyle()
-        paragraph.alignment = .center
-
-        for segment in 0..<segmentCount {
-            let label = self.label(forSegment: segment) ?? ""
-            let selected = segment == selectedSegment
-            let attributes: [NSAttributedString.Key: Any] = [
-                .font: NSFont.systemFont(ofSize: 13, weight: .semibold),
-                .foregroundColor: selected ? NSColor.white : NSColor.labelColor,
-                .paragraphStyle: paragraph,
-            ]
-            let segmentRect = NSRect(
-                x: bounds.minX + CGFloat(segment) * segmentWidth,
-                y: bounds.minY,
-                width: segmentWidth,
-                height: bounds.height
-            )
-            let textSize = label.size(withAttributes: attributes)
-            let textRect = NSRect(
-                x: segmentRect.minX,
-                y: segmentRect.midY - textSize.height / 2,
-                width: segmentRect.width,
-                height: textSize.height
-            )
-            label.draw(in: textRect, withAttributes: attributes)
-        }
     }
 }

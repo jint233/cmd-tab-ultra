@@ -50,8 +50,6 @@ func isAutoStartEnabled() -> Bool {
 func currentServiceStatus() -> ServiceStatus {
     let output = launchctlPrint()
     let pid = output.flatMap { statusValue("pid", in: $0) }.flatMap(Int.init)
-    let pids = agentPids()
-    let duplicatePids = pids.filter { pid == nil || $0 != pid }
     let readyURL = URL(fileURLWithPath: agentReadyPath)
     let readyPid = (try? String(contentsOf: readyURL, encoding: .utf8))
         .flatMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
@@ -60,11 +58,8 @@ func currentServiceStatus() -> ServiceStatus {
         loaded: output != nil,
         running: pid != nil,
         pid: pid,
-        runs: output.flatMap { statusValue("runs", in: $0) }.flatMap(Int.init),
-        program: output.flatMap { statusValue("program", in: $0) },
         version: launchAgentVersion() ?? appVersion,
         autoStartEnabled: isAutoStartEnabled(),
-        duplicatePids: duplicatePids,
         accessibilityGranted: AXIsProcessTrusted(),
         agentReady: pid != nil && readyPid == pid
     )

@@ -35,7 +35,7 @@ enum AppPreferences {
         set {
             let userBundleIDs = newValue.subtracting(defaultExcludedBundleIDs).sorted()
             UserDefaults.standard.set(userBundleIDs, forKey: excludedBundleIDsDefaultsKey)
-            }
+        }
     }
 
     static func setRestoreMinimizedWindows(_ enabled: Bool) {

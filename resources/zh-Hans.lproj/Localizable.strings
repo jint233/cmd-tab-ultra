@@ -16,9 +16,7 @@
 "tab.exclusions" = "排除";
 "tab.logs" = "日志";
 
-"status.version" = "版本";
 "status.autoStart" = "开机自启";
-"status.none" = "无";
 
 "policy.restoreMinimized" = "恢复最小化窗口";
 "policy.reopenWindows" = "重新打开无窗口应用";
@@ -27,7 +25,6 @@
 "excluded.title" = "排除应用";
 "excluded.chooseTitle" = "选择要排除的应用";
 
-"recent.title" = "最近处理";
 "recent.empty" = "暂无记录";
 "recent.action.skipped" = "已跳过";
 "recent.action.unminimized" = "已恢复最小化窗口";
@@ -43,8 +40,6 @@
 "state.stopped" = "已停止";
 "state.stopping" = "停止中";
 
-"description.waitingAuthorization" = "服务进程已启动，等待辅助功能授权。";
-"description.unauthorized" = "需要授权辅助功能权限以启用服务。";
 "description.running" = "服务运行中，自动恢复最小化窗口。";
 "description.readying" = "服务启动中，正在连接监听模块…";
 "description.stopped" = "服务已停止。";
