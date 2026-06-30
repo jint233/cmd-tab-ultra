@@ -31,6 +31,7 @@ func writeLaunchAgentPlist(binaryPath: String = installedBinaryPath) throws {
         withIntermediateDirectories: true
     )
     try data.write(to: url, options: .atomic)
+    invalidateLaunchAgentVersionCache()
 }
 
 @discardableResult

@@ -8,12 +8,32 @@
 "control.refresh" = "Refresh";
 "control.restart" = "Restart App";
 "control.authorize" = "Authorize";
+"control.chooseApp" = "Choose App...";
+"control.remove" = "Remove";
+"control.clear" = "Clear";
+
+"tab.settings" = "Settings";
+"tab.exclusions" = "Exclusions";
+"tab.logs" = "Logs";
 
 "status.version" = "Version";
-"status.pid" = "Process PID";
-"status.duplicates" = "Duplicate Instances";
 "status.autoStart" = "Start at Login";
 "status.none" = "None";
+
+"policy.restoreMinimized" = "Restore Minimized Windows";
+"policy.reopenWindows" = "Reopen Apps Without Windows";
+"policy.commandNFallback" = "Create Window When Needed";
+
+"excluded.title" = "Excluded Apps";
+"excluded.chooseTitle" = "Choose an app to exclude";
+
+"recent.title" = "Recent Actions";
+"recent.empty" = "No records";
+"recent.action.skipped" = "Skipped";
+"recent.action.unminimized" = "Restored minimized window";
+"recent.action.reopened" = "Requested app reopen";
+"recent.action.cmdN" = "Created new window";
+"recent.action.failed" = "Failed";
 
 "state.waitingAuthorization" = "Waiting for Authorization";
 "state.unauthorized" = "Authorization Required";
@@ -23,26 +43,31 @@
 "state.stopped" = "Stopped";
 "state.stopping" = "Stopping";
 
-"description.waitingAuthorization" = "The background service is running, but Accessibility permission is still required before it can restore windows.";
-"description.unauthorized" = "Grant Accessibility permission so CmdTabUltra can observe Cmd-Tab app switches.";
-"description.running" = "The background service is watching app switches and will restore windows when needed.";
-"description.readying" = "The background service is starting its listener and should be ready in a few seconds.";
-"description.stopped" = "The background service is not running, so window restoration is currently inactive.";
-"description.stopping" = "Stopping the background service. Please wait.";
+"description.waitingAuthorization" = "Service started. Waiting for Accessibility permission.";
+"description.unauthorized" = "Accessibility permission is required to enable service.";
+"description.running" = "Active. Restoring minimized windows.";
+"description.readying" = "Service starting. Connecting listener...";
+"description.stopped" = "Service stopped.";
+"description.stopping" = "Stopping service...";
 
 "message.refreshing" = "Refreshing...";
-"message.allowAccessibilityThenRestart" = "Allow this app in Accessibility settings. CmdTabUltra will ask to restart after permission is granted.";
-"message.serviceRunningUnauthorized" = "The service process is running, but Accessibility permission is missing. Click Authorize to continue.";
-"message.accessibilityRequired" = "Accessibility permission is required. Click Authorize to open the permission prompt.";
-"message.agentNotReady" = "The service process is running, but the listener is not ready yet. Confirm that Accessibility permission allows CmdTabUltra.";
-"message.allowAccessibilityFirst" = "Allow this app in Accessibility settings first. CmdTabUltra will ask to restart after permission is granted.";
-"message.openedAccessibility" = "Opened Accessibility settings. CmdTabUltra will ask to restart after permission is granted.";
+"message.allowAccessibilityThenRestart" = "Allow Accessibility in settings, then restart.";
+"message.serviceRunningUnauthorized" = "Service started, but Accessibility permission is missing.";
+"message.accessibilityRequired" = "Accessibility permission is required.";
+"message.agentNotReady" = "Service started, but listener is not ready yet.";
+"message.allowAccessibilityFirst" = "Allow Accessibility in settings, then restart.";
+"message.openedAccessibility" = "Opened Accessibility settings, please restart after allowing.";
 "message.starting" = "Starting service...";
-"message.startedWaitingAgent" = "Service started. Waiting for the listener to become ready.";
+"message.startedWaitingAgent" = "Service started, readying listener.";
 "message.startedUnauthorized" = "Service started, but Accessibility permission is missing.";
 "message.stopping" = "Stopping service...";
 "message.autoStartEnabled" = "Start at Login enabled";
 "message.autoStartDisabled" = "Start at Login disabled";
+"message.preferencesSaved" = "Preferences saved";
+"message.chooseValidApp" = "Choose a valid app";
+"message.excludedAppAdded" = "Excluded app added";
+"message.excludedAppRemoved" = "Excluded app removed";
+"message.defaultExclusionLocked" = "Default exclusions cannot be removed";
 
 "alert.restart.title" = "Restart Required";
 "alert.restart.message" = "Accessibility permission has been granted. Restart CmdTabUltra so the new permission state takes effect.";

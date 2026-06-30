@@ -1,5 +1,6 @@
 import ApplicationServices
 import Cocoa
+import UniformTypeIdentifiers
 
 extension ControlPanelDelegate {
     func setControlsEnabled(_ enabled: Bool) {
@@ -7,6 +8,12 @@ extension ControlPanelDelegate {
         stopButton.isEnabled = enabled
         refreshButton.isEnabled = enabled
         autoStartSwitch.isEnabled = enabled
+        restoreMinimizedSwitch.isEnabled = enabled
+        reopenWindowsSwitch.isEnabled = enabled
+        commandNFallbackSwitch.isEnabled = enabled
+        chooseExcludedAppButton.isEnabled = enabled
+        excludedBundleIDTable.isEnabled = enabled
+        removeExcludedButton.isEnabled = enabled
     }
 
     func relaunchApplication() {
@@ -44,6 +51,9 @@ extension ControlPanelDelegate {
     func setMessage(_ text: String, protectingFor seconds: TimeInterval = 0) {
         messageValue.stringValue = text
         protectedMessageUntil = seconds > 0 ? Date().addingTimeInterval(seconds) : nil
+        if !text.isEmpty {
+            statusDescription.stringValue = text
+        }
     }
 
     var isMessageProtected: Bool {
@@ -61,6 +71,39 @@ extension ControlPanelDelegate {
         refresh()
     }
 
+    func prepareAccessibilityAuthorization(message: String, setRestartAction: Bool) {
+        authorizationFlowStarted = true
+        setControlsEnabled(false)
+        setMessage(message, protectingFor: 3)
+
+        if setRestartAction {
+            primaryAction = .restart
+            applyPrimaryActionTitle()
+        }
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            _ = stopService()
+            resetAccessibilityPermission()
+            let status = currentServiceStatus()
+
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                if setRestartAction {
+                    self.primaryAction = .restart
+                    self.applyPrimaryActionTitle()
+                }
+                self.applyStatus(status)
+                self.setMessage(message, protectingFor: 3)
+
+                let opts =
+                    [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
+                    as CFDictionary
+                _ = AXIsProcessTrustedWithOptions(opts)
+                self.startAuthorizationPolling()
+            }
+        }
+    }
+
     @objc func startClicked() {
         removeDuplicateUserInstallIfNeeded()
 
@@ -71,26 +114,19 @@ extension ControlPanelDelegate {
                 if refreshedStatus.accessibilityGranted {
                     promptRestartAfterAuthorization()
                 } else {
-                    authorizationFlowStarted = true
-                    setMessage(localized("message.allowAccessibilityFirst"), protectingFor: 3)
-                    resetAccessibilityPermission()
-                    let opts =
-                        [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
-                        as CFDictionary
-                    _ = AXIsProcessTrustedWithOptions(opts)
+                    prepareAccessibilityAuthorization(
+                        message: localized("message.allowAccessibilityFirst"),
+                        setRestartAction: true
+                    )
                 }
                 return
             }
 
-            authorizationFlowStarted = true
             restartPromptShown = false
-            setMessage(localized("message.openedAccessibility"), protectingFor: 3)
-            resetAccessibilityPermission()
-            let opts =
-                [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-            _ = AXIsProcessTrustedWithOptions(opts)
-            primaryAction = .restart
-            applyPrimaryActionTitle()
+            prepareAccessibilityAuthorization(
+                message: localized("message.openedAccessibility"),
+                setRestartAction: true
+            )
             return
         }
 
@@ -107,9 +143,9 @@ extension ControlPanelDelegate {
 
         DispatchQueue.global(qos: .userInitiated).async {
             let msg = startService()
-            Thread.sleep(forTimeInterval: 0.8)
             let newStatus = currentServiceStatus()
-            DispatchQueue.main.async {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
+                guard let self else { return }
                 self.isStarting = false
                 if msg == "Started" && newStatus.agentReady {
                     self.hasJustStarted = true
@@ -143,9 +179,9 @@ extension ControlPanelDelegate {
 
         DispatchQueue.global(qos: .userInitiated).async {
             let msg = stopService()
-            Thread.sleep(forTimeInterval: 0.6)
             let newStatus = currentServiceStatus()
-            DispatchQueue.main.async {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+                guard let self else { return }
                 self.isStopping = false
                 self.setMessage(
                     msg == "Stopped" ? localized("state.stopped") : msg,
@@ -162,7 +198,8 @@ extension ControlPanelDelegate {
         DispatchQueue.global(qos: .userInitiated).async {
             let msg = setAutoStartEnabled(shouldEnableAutoStart)
             let status = currentServiceStatus()
-            DispatchQueue.main.async {
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
                 let zhMsg: String
                 switch msg {
                 case "Auto-start enabled": zhMsg = localized("message.autoStartEnabled")
@@ -173,5 +210,57 @@ extension ControlPanelDelegate {
                 self.applyStatus(status)
             }
         }
+    }
+
+    @objc func toggleRestorePolicy() {
+        AppPreferences.setRestoreMinimizedWindows(restoreMinimizedSwitch.state == .on)
+        AppPreferences.setReopenAppsWithoutWindows(reopenWindowsSwitch.state == .on)
+        AppPreferences.setUseCommandNFallback(commandNFallbackSwitch.state == .on)
+        setMessage(localized("message.preferencesSaved"), protectingFor: 2)
+        refreshSilently()
+    }
+
+    @objc func chooseExcludedApp() {
+        let panel = NSOpenPanel()
+        panel.title = localized("excluded.chooseTitle")
+        if #available(macOS 11.0, *) {
+            panel.allowedContentTypes = [.application]
+        } else {
+            panel.allowedFileTypes = ["app"]
+        }
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.directoryURL = URL(fileURLWithPath: "/Applications")
+
+        guard panel.runModal() == .OK else { return }
+        guard let url = panel.url,
+            let bundle = Bundle(url: url),
+            let bundleID = bundle.bundleIdentifier
+        else {
+            setMessage(localized("message.chooseValidApp"), protectingFor: 2)
+            return
+        }
+        AppPreferences.addExcludedBundleID(bundleID)
+        updateExcludedBundleIDList(selecting: bundleID)
+        setMessage(localized("message.excludedAppAdded"), protectingFor: 2)
+    }
+
+    @objc func removeExcludedBundleID() {
+        let selectedRow = excludedBundleIDTable.selectedRow
+        guard excludedBundleIDsSnapshot.indices.contains(selectedRow) else { return }
+        let bundleID = excludedBundleIDsSnapshot[selectedRow]
+        if defaultExcludedBundleIDs.contains(bundleID) {
+            setMessage(localized("message.defaultExclusionLocked"), protectingFor: 2)
+            return
+        }
+        AppPreferences.removeExcludedBundleID(bundleID)
+        updateExcludedBundleIDList()
+        setMessage(localized("message.excludedAppRemoved"), protectingFor: 2)
+    }
+
+    @objc func clearLogsClicked() {
+        clearRecentActionRecords()
+        updateRecentActions()
     }
 }

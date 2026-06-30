@@ -9,7 +9,7 @@ enum WindowState {
 }
 
 func windowState(for app: NSRunningApplication) -> WindowState {
-    let axApp = AXUIElementCreateApplication(app.processIdentifier)
+    let axApp = appAccessibilityElement(for: app)
 
     var windowsRef: CFTypeRef?
     guard

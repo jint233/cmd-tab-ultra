@@ -1,6 +1,7 @@
 import Cocoa
 
 let appName = "CmdTabUltra"
+let appDisplayName = "Cmd-Tab-Ultra"
 let serviceLabel = "com.jint233.cmdtabultra"
 let agentArgument = "--agent"
 let defaultVersion = "0.0.0"
@@ -8,40 +9,34 @@ let defaultVersion = "0.0.0"
 let tabKeyCode: Int64 = 48
 let nKeyCode: CGKeyCode = 0x2D
 
-let skippedBundleIDs: Set<String> = [
-    "com.apple.systemuiserver"
-]
-
-var appVersion: String {
+let appVersion: String = {
     Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
         ?? Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
         ?? defaultVersion
-}
+}()
 
-var serviceDomain: String {
-    "gui/\(getuid())"
-}
+let serviceDomain: String = "gui/\(getuid())"
 
-var serviceIdentifier: String {
+let serviceIdentifier: String = {
     "\(serviceDomain)/\(serviceLabel)"
-}
+}()
 
-var launchAgentPath: String {
+let launchAgentPath: String = {
     "\(NSHomeDirectory())/Library/LaunchAgents/\(serviceLabel).plist"
-}
+}()
 
-var installedBinaryPath: String {
+let installedBinaryPath: String = {
     Bundle.main.executableURL?.path
         ?? "\(NSHomeDirectory())/Applications/\(appName).app/Contents/MacOS/\(appName)"
-}
+}()
 
-var userApplicationsInstallPath: String {
+let userApplicationsInstallPath: String = {
     "\(NSHomeDirectory())/Applications/\(appName).app"
-}
+}()
 
-var agentReadyPath: String {
-    "\(NSHomeDirectory())/Library/Application Support/\(appName)/agent-ready"
-}
+let agentReadyPath: String = {
+    "\(applicationSupportDirectoryPath)/agent-ready"
+}()
 
 struct ServiceStatus {
     let loaded: Bool

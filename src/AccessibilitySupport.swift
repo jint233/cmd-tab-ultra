@@ -1,5 +1,14 @@
 import ApplicationServices
+import Cocoa
 import Foundation
+
+let axMessagingTimeout: Float = 0.25
+
+func appAccessibilityElement(for app: NSRunningApplication) -> AXUIElement {
+    let axApp = AXUIElementCreateApplication(app.processIdentifier)
+    AXUIElementSetMessagingTimeout(axApp, axMessagingTimeout)
+    return axApp
+}
 
 func axBoolAttribute(_ attribute: CFString, of element: AXUIElement) -> Bool {
     var valueRef: CFTypeRef?
@@ -29,7 +38,9 @@ func requireAccessibility() {
         }
         waitCount += 1
         _ = AXIsProcessTrustedWithOptions(opts)
-        Thread.sleep(forTimeInterval: 1.0)
+        // Use RunLoop instead of Thread.sleep so the main thread remains
+        // responsive to signals and dispatched blocks while waiting.
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 1.0))
     }
     logAgent("Accessibility granted; continuing")
 }

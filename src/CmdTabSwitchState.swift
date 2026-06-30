@@ -16,8 +16,8 @@ final class CmdTabSwitchState {
         pendingActivatedApplication = app
         if expectingSwitch {
             let switchID = currentSwitchID
-            DispatchQueue.main.async {
-                self.restorePendingSwitchTarget(for: switchID)
+            DispatchQueue.main.async { [weak self] in
+                self?.restorePendingSwitchTarget(for: switchID)
             }
         }
     }
@@ -27,7 +27,7 @@ final class CmdTabSwitchState {
 
         // Cmd+Shift+Tab is intentionally supported: it is still Tab with Command held.
         if !cmdTabWasPressed && !expectingSwitch {
-            currentSwitchID += 1
+            currentSwitchID = currentSwitchID &+ 1
             pendingActivatedApplication = nil
         }
         cmdTabWasPressed = true
@@ -39,8 +39,8 @@ final class CmdTabSwitchState {
         cmdTabWasPressed = false
         expectingSwitch = true
         let switchID = currentSwitchID
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            self.restorePendingSwitchTarget(for: switchID)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
+            self?.restorePendingSwitchTarget(for: switchID)
         }
     }
 

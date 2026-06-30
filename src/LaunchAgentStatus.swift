@@ -16,10 +16,19 @@ func statusValue(_ key: String, in output: String) -> String? {
     return nil
 }
 
+private var cachedLaunchAgentVersion: String?
+
+func invalidateLaunchAgentVersionCache() {
+    cachedLaunchAgentVersion = nil
+}
+
 func launchAgentVersion() -> String? {
+    if let cached = cachedLaunchAgentVersion { return cached }
     let result = runCommand("/usr/libexec/PlistBuddy", ["-c", "Print :Version", launchAgentPath])
     guard result.status == 0 else { return nil }
-    return result.output.trimmingCharacters(in: .whitespacesAndNewlines)
+    let version = result.output.trimmingCharacters(in: .whitespacesAndNewlines)
+    cachedLaunchAgentVersion = version
+    return version
 }
 
 func isAutoStartEnabled() -> Bool {

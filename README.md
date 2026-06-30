@@ -8,8 +8,10 @@ CmdTabUltra is a macOS window restore utility. When you switch back to an app wi
 
 - Restores minimized windows after `Cmd-Tab`
 - Reopens apps that have no standard visible window
-- Falls back to `Cmd-N` when app reopen does not create a window
+- Creates a new window when an app stays active without one
 - Provides a local control panel for service status, startup, diagnostics, and language
+- Supports restore policy toggles and excluded app bundle identifiers
+- Shows the most recent restore actions for local diagnostics
 - Runs the background service through a per-user LaunchAgent
 
 ## Requirements
