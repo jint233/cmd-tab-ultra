@@ -98,7 +98,7 @@ extension ControlPanelDelegate {
         }
 
         if isMessageProtected {
-            statusDescription.stringValue = messageText
+            statusDescription.stringValue = messageValue.stringValue
         }
 
         versionValue.stringValue = status.version ?? appVersion

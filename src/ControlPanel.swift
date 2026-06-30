@@ -13,6 +13,7 @@ final class ControlPanelDelegate: NSObject, NSApplicationDelegate {
     let statusDot = NSTextField(labelWithString: "")
     let statusValue = NSTextField(labelWithString: "")
     let statusDescription = NSTextField(labelWithString: "")
+    let versionLabel = NSTextField(labelWithString: "")
     let autoStartLabel = NSTextField(labelWithString: "")
     let restoreMinimizedLabel = NSTextField(labelWithString: "")
     let reopenWindowsLabel = NSTextField(labelWithString: "")
@@ -23,6 +24,7 @@ final class ControlPanelDelegate: NSObject, NSApplicationDelegate {
     let chooseExcludedAppButton = NSButton(title: "", target: nil, action: nil)
     let removeExcludedButton = NSButton(title: "", target: nil, action: nil)
     let clearLogsButton = NSButton(title: "", target: nil, action: nil)
+    let recentActionsLabel = NSTextField(labelWithString: "")
     let recentActionsValue = NSTextField(labelWithString: "")
     let versionValue = NSTextField(labelWithString: "")
     let autoStartSwitch = NSSwitch()
@@ -32,6 +34,7 @@ final class ControlPanelDelegate: NSObject, NSApplicationDelegate {
     let startButton = NSButton(title: "", target: nil, action: nil)
     let stopButton = NSButton(title: "", target: nil, action: nil)
     let refreshButton = NSButton(title: "", target: nil, action: nil)
+    let messageValue = NSTextField(labelWithString: "")
     let tabSegmentedControl = RoundedTabSegmentedControl()
     let tabView = NSTabView()
     var excludedBundleIDsSnapshot: [String] = []
@@ -42,7 +45,6 @@ final class ControlPanelDelegate: NSObject, NSApplicationDelegate {
     var hasJustStarted = false
     var authorizationFlowStarted = false
     var restartPromptShown = false
-    var messageText = ""
     var protectedMessageUntil: Date?
     var primaryAction: ControlPanelPrimaryAction = .start
 

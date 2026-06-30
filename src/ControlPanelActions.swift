@@ -50,7 +50,7 @@ extension ControlPanelDelegate {
     }
 
     func setMessage(_ text: String, protectingFor seconds: TimeInterval = 0) {
-        messageText = text
+        messageValue.stringValue = text
         protectedMessageUntil = seconds > 0 ? Date().addingTimeInterval(seconds) : nil
         if !text.isEmpty {
             statusDescription.stringValue = text
