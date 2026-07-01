@@ -302,8 +302,8 @@ extension ControlPanelDelegate {
         let settingsSection = createRowsStack(views: [
             autoStartRow,
             restoreMinimizedRow,
-            reopenWindowsRow,
             commandNFallbackRow,
+            reopenWindowsRow,
             languageRow,
         ])
         settingsSection.spacing = ControlPanelLayout.settingsRowSpacing

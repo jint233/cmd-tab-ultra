@@ -14,13 +14,16 @@ func ensureVisibleWindow(app: NSRunningApplication) {
 
     let policy = AppPreferences.restorePolicy
     switch windowState(for: app) {
-    case .unavailable, .noStandardWindows:
+    case .unavailable:
+        debugLogAgent("skip app=\(app.localizedName ?? "unknown") reason=window-state-unavailable")
+        recordAction(for: app, action: .failed, result: "Window state unavailable")
+    case .noStandardWindows:
         guard policy.reopenAppsWithoutWindows else {
             return
         }
         debugLogAgent(
-            "reopen app=\(app.localizedName ?? "unknown") reason=no-window-or-unavailable")
-        reopenApplication(for: app, verifyAfterReopen: true)
+            "confirm no-window app=\(app.localizedName ?? "unknown") reason=no-standard-window")
+        confirmNoWindowThenReopen(app: app, policy: policy)
     case .allStandardWindowsMinimized:
         guard policy.restoreMinimizedWindows else {
             return
@@ -38,6 +41,42 @@ func ensureVisibleWindow(app: NSRunningApplication) {
         }
     case .hasVisibleStandardWindow:
         debugLogAgent("skip app=\(app.localizedName ?? "unknown") reason=has-visible-window")
+    }
+}
+
+func confirmNoWindowThenReopen(app: NSRunningApplication, policy: RestorePolicy) {
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+        guard !app.isTerminated else { return }
+        guard NSWorkspace.shared.frontmostApplication?.processIdentifier == app.processIdentifier
+        else {
+            debugLogAgent(
+                "skip reopen app=\(app.localizedName ?? "unknown") reason=no-longer-frontmost")
+            return
+        }
+
+        switch windowState(for: app) {
+        case .unavailable:
+            debugLogAgent(
+                "skip reopen app=\(app.localizedName ?? "unknown") reason=window-state-unavailable-after-confirm"
+            )
+            recordAction(for: app, action: .failed, result: "Window state unavailable")
+        case .noStandardWindows:
+            debugLogAgent(
+                "reopen app=\(app.localizedName ?? "unknown") reason=confirmed-no-standard-window"
+            )
+            reopenApplication(for: app, verifyAfterReopen: true)
+        case .allStandardWindowsMinimized:
+            guard policy.restoreMinimizedWindows else { return }
+            if unminimizeFirstWindow(for: app) {
+                recordAction(for: app, action: .unminimized, result: "Restored minimized window")
+            } else {
+                recordAction(for: app, action: .failed, result: "Failed to restore window")
+            }
+        case .hasVisibleStandardWindow:
+            debugLogAgent(
+                "skip reopen app=\(app.localizedName ?? "unknown") reason=window-appeared-after-confirm"
+            )
+        }
     }
 }
 
