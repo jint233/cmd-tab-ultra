@@ -35,7 +35,7 @@ final class ControlPanelDelegate: NSObject, NSApplicationDelegate {
     let stopButton = NSButton(title: "", target: nil, action: nil)
     let refreshButton = NSButton(title: "", target: nil, action: nil)
     let messageValue = NSTextField(labelWithString: "")
-    let tabSegmentedControl = RoundedTabSegmentedControl()
+    let tabSegmentedControl = NSSegmentedControl()
     let tabView = NSTabView()
     var excludedBundleIDsSnapshot: [String] = []
     var refreshTimer: Timer?

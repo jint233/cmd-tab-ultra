@@ -151,7 +151,9 @@ extension ControlPanelDelegate {
     }
 
     @objc func tabSegmentChanged() {
-        tabView.selectTabViewItem(at: tabSegmentedControl.selectedSegment)
+        let index = tabSegmentedControl.selectedSegment
+        guard tabView.tabViewItems.indices.contains(index) else { return }
+        tabView.selectTabViewItem(at: index)
         refreshTabLayout()
     }
 
@@ -723,98 +725,5 @@ private final class RoundedSelectionTableRowView: NSTableRowView {
             xRadius: ControlPanelLayout.listSelectionCornerRadius,
             yRadius: ControlPanelLayout.listSelectionCornerRadius
         ).fill()
-    }
-}
-
-final class RoundedTabSegmentedControl: NSSegmentedControl {
-    override var selectedSegment: Int {
-        get { super.selectedSegment }
-        set {
-            super.selectedSegment = newValue
-            needsDisplay = true
-        }
-    }
-
-    override func setLabel(_ label: String, forSegment segment: Int) {
-        super.setLabel(label, forSegment: segment)
-        needsDisplay = true
-    }
-
-    override func draw(_ dirtyRect: NSRect) {
-        guard segmentCount > 0 else { return }
-
-        let radius = ControlPanelLayout.controlCornerRadius
-        let backgroundRect = bounds
-        NSColor.controlColor.withAlphaComponent(0.55).setFill()
-        NSBezierPath(
-            roundedRect: backgroundRect,
-            xRadius: radius,
-            yRadius: radius
-        ).fill()
-
-        let segmentWidth = bounds.width / CGFloat(segmentCount)
-        if selectedSegment >= 0 && selectedSegment < segmentCount {
-            let selectedRect = NSRect(
-                x: bounds.minX + CGFloat(selectedSegment) * segmentWidth,
-                y: bounds.minY,
-                width: segmentWidth,
-                height: bounds.height
-            )
-            NSColor.controlAccentColor.setFill()
-            NSBezierPath(
-                roundedRect: selectedRect,
-                xRadius: radius,
-                yRadius: radius
-            ).fill()
-        }
-
-        drawSeparators(segmentWidth: segmentWidth)
-        drawLabels(segmentWidth: segmentWidth)
-    }
-
-    private func drawSeparators(segmentWidth: CGFloat) {
-        guard segmentCount > 1 else { return }
-
-        NSColor.separatorColor.withAlphaComponent(0.45).setStroke()
-        for segment in 1..<segmentCount {
-            if segment == selectedSegment || segment - 1 == selectedSegment {
-                continue
-            }
-            let x = bounds.minX + CGFloat(segment) * segmentWidth
-            let path = NSBezierPath()
-            path.lineWidth = 1
-            path.move(to: NSPoint(x: x, y: bounds.minY + 8))
-            path.line(to: NSPoint(x: x, y: bounds.maxY - 8))
-            path.stroke()
-        }
-    }
-
-    private func drawLabels(segmentWidth: CGFloat) {
-        let paragraph = NSMutableParagraphStyle()
-        paragraph.alignment = .center
-
-        for segment in 0..<segmentCount {
-            let label = self.label(forSegment: segment) ?? ""
-            let selected = segment == selectedSegment
-            let attributes: [NSAttributedString.Key: Any] = [
-                .font: NSFont.systemFont(ofSize: 13, weight: .semibold),
-                .foregroundColor: selected ? NSColor.white : NSColor.labelColor,
-                .paragraphStyle: paragraph,
-            ]
-            let segmentRect = NSRect(
-                x: bounds.minX + CGFloat(segment) * segmentWidth,
-                y: bounds.minY,
-                width: segmentWidth,
-                height: bounds.height
-            )
-            let textSize = label.size(withAttributes: attributes)
-            let textRect = NSRect(
-                x: segmentRect.minX,
-                y: segmentRect.midY - textSize.height / 2,
-                width: segmentRect.width,
-                height: textSize.height
-            )
-            label.draw(in: textRect, withAttributes: attributes)
-        }
     }
 }
